@@ -13,7 +13,8 @@
 #define RESULT_PRECISION 8
 #define RESULT_MAX_SIZE 64
 
-#define MAX_MSG_SIZE 16
+#define MAX_MSG_SIZE 64
+#define DISPLAY_SIZE 16
 
 #include <StackList.h>
 #include "infix_postfix.h"
@@ -61,8 +62,10 @@ unsigned long time = 0;
 
 
 String process(String infix) {
-	Serial.print("Processing ");
-	Serial.println(infix);
+	#if DEBUG
+		Serial.print("Processing ");
+		Serial.println(infix);
+	#endif
 	String replacement = "(";
 	replacement.replace('-', '0-'); // Es. se prevAns = -1, replacement = "(0-1)"
 	replacement.concat(prevAns);
@@ -100,13 +103,22 @@ void scrivi(String testo, bool raw) {
 		testo.replace("T", "atan ");
 	}
 	lcd.print(testo);
+        if(testo.length() > DISPLAY_SIZE - 1){
+		#if DEBUG
+			Serial.println("Auto Scrolling");
+		#endif
+		for (int i = 0; i <= testo.length() - DISPLAY_SIZE; i++)
+			lcd.scrollDisplayLeft();
+	}
 }
 
 void loop () {
 	if (Serial1.available()) {
 		newMessage = true;
 		inChar = Serial1.read(); // Read a character
-		Serial.println(inChar);
+		#if DEBUG
+			Serial.println(inChar);
+		#endif
 		if (inChar == '£') {
 			for (int i = 0; i < MAX_MSG_SIZE+1; i++) {
 				messaggio[i] = '\0';
@@ -130,6 +142,7 @@ void loop () {
 			clearScreen = true;
 			vaScritto = false;
 			textMode = !textMode;
+			espressione = "";
 			#if DEBUG
 				Serial.print("Toggling textMode");
 			#endif
@@ -289,7 +302,9 @@ void loop () {
 									prevAns = value;
 								} else {
 									lcd.write("Can'tEvalPostfix");
-									Serial.println(postfix);
+									#if DEBUG
+										Serial.println(postfix);
+									#endif
 								}
 							} else {
 								lcd.write("CantConvert2Infx");
@@ -320,4 +335,5 @@ void loop () {
 		}
 	}
 }
+
 
