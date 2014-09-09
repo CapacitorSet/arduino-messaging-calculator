@@ -7,7 +7,7 @@ additionalCode = "";
 
 fs = require('fs');
 replacements = JSON.parse(fs.readFileSync('keys.json').toString('utf8'));
-originalProgram = fs.readFileSync('Calcolatrice.ino').toString('utf8');
+originalProgram = fs.readFileSync('Base.ino').toString('utf8');
 
 for (textToBeReplaced in replacements) {
 	keys = replacements[textToBeReplaced];
@@ -32,4 +32,4 @@ for (textToBeReplaced in replacements) {
 	originalProgram = originalProgram.replace("/* " + textToBeReplaced + " */", replacement);
 
 }
-console.log(originalProgram);
+fs.writeFileSync("Calcolatrice.ino", originalProgram);
