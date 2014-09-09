@@ -34,7 +34,7 @@ For the purposes of this tutorial:
 22. Connect pin `7` of the keypad to the `6` pin.
 23. Connect pin `8` of the keypad to the `5` pin.
 
-To generate the code, run "node make.js" (you must have installed node.js). Then, open Calcolatrice.ino in the Arduino IDE, and upload the sketch to your Arduino board.
+To generate the code, run "node make.js" (you must have installed node.js). Then, open calculator.ino in the Arduino IDE, and upload the sketch to your Arduino board.
 
 ###Usage###
 To begin using the calculator, simply power the Arduino. The LCD display should turn on and display `Tette *-*`. To compute an expression, simply type it out as you would on a regular calculator, then press the `*` key.

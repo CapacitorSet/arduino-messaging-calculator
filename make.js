@@ -32,4 +32,4 @@ for (textToBeReplaced in replacements) {
 	originalProgram = originalProgram.replace("/* " + textToBeReplaced + " */", replacement);
 
 }
-fs.writeFileSync("Calcolatrice.ino", originalProgram);
+fs.writeFileSync("calculator.ino", originalProgram);
