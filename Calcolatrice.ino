@@ -57,6 +57,7 @@ bool newMessage = true;
 char prevKey = '\0';
 int tapCount = 0;
 bool textMode = false;
+unsigned long time = 0;
 
 
 String process(String infix) {
@@ -113,8 +114,7 @@ void loop () {
     }
     if(index < MAX_MSG_SIZE) {
       messaggio[index] = inChar; // Store it
-      index++; // Increment where to write next
-      messaggio[index] = '\0'; // Null terminate the string
+      messaggio[++index] = '\0'; // Null terminate the string
     }
   }
   
@@ -151,22 +151,28 @@ void loop () {
       prevKey = '\0'; // E' difficile da spiegare, ma va tenuto altrimenti non si comporta in modo naturale per l'utente.
     } else
     if (textMode) {
-      if (key == prevKey) { tapCount++; espressione = espressione.substring(0, espressione.length() - 1); } // Cancella il token precedente
-      else                { tapCount=0; }
+      if (key == prevKey && (millis() - time) < 1000) { tapCount++; espressione = espressione.substring(0, espressione.length() - 1); time = millis();} // Cancella il token precedente
+      else                { tapCount=0; prevKey = '\0'; time = millis();}
       prevKey = key;
       switch (key) {
         case '1':
           clearScreen = true;
           vaScritto = true;
-          switch (tapCount % 3) {
+          switch (tapCount % 5) {
             case 0: // First tap
-              key = '.';
+              key = '1';
               break;
             case 1:
-              key = ',';
+              key = '(';
               break;
             case 2:
-              key = '1';
+              key = ')';
+              break;
+            case 3:
+              key = '=';
+              break;
+            case 4:
+              key = '^';
               break;
           }
           espressione += key;
@@ -334,6 +340,9 @@ void loop () {
           vaScritto = true;
           key = ' '; // Il tasto 0 in text mode è sempre spazio
           espressione += key;
+          break;
+        case 'S':
+          
           break;
         case '+':
           clearScreen = true;
