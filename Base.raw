@@ -13,7 +13,7 @@
 #define RESULT_PRECISION 8
 #define RESULT_MAX_SIZE 64
 
-#define MAX_MSG_SIZE 64
+#define MAX_MSG_QUEUE_SIZE 64
 #define DISPLAY_SIZE 16
 
 #include <StackList.h>
@@ -142,7 +142,6 @@ void loop () {
 					if (ctrl) { // Ctrl+S in textMode clears the message queue.
 						clear_array(messaggio, MAX_MSG_SIZE);
 						index = 0;
-						readMsg = false;
 					} else {
 						printBuffer = false;
 						clearScreen = false;
@@ -224,25 +223,26 @@ void loop () {
 	}
 
 	if (Serial1.available()) { // As soon as serial data is available
-		delay(20);
 		if (index > 0){
 			#if DEBUG
 				Serial.println("Nuovo messaggio aggiunto in coda");
 			#endif
 			messaggio[index++] = '-';
 		}
-		while (Serial1.available()){
-			inChar = Serial1.read(); // Read a character
-			#if DEBUG
-				Serial.println(inChar);
-			#endif
-			if(index < MAX_MSG_SIZE - 1) {
-				messaggio[index] = inChar; // Store it
-				index++;
-			}
+
+		inChar = Serial1.read(); // Read a character
+		#if DEBUG
+			Serial.print("> ");
+			Serial.println(inChar);
+		#endif
+		if (inChar == '\n') {
+			inChar = '\0';
+			newMessage = true;
 		}
-		messaggio[index] = '\0';
-		newMessage = true;
+		if(index < MAX_MSG_QUEUE_SIZE - 1) {
+			messaggio[index] = inChar; // Store it
+			index++;
+		}
 	}
 
 	if (newMessage && textMode) {
