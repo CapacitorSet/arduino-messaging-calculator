@@ -1,18 +1,134 @@
 {
-	"TEXTMODE_KEYS": {
-		"1": ["1", "(", ")", "=", "^"],
-		"2": ["a", "b", "c", "2"],
-		"3": ["d", "e", "f", "3"],
-		"4": ["g", "h", "i", "4"],
-		"5": ["j", "k", "l", "5"],
-		"6": ["m", "n", "o", "6"],
-		"7": ["p", "q", "r", "s", "7"],
-		"8": ["t", "u", "v", "8"],
-		"9": ["w", "x", "y", "z", "9"],
-		"0": [" ", "0"],
-		"+": ["+"],
-		"-": ["-"],
-		"*": ["*"],
-		"/": ["/"]
+	"1": {
+		"vanilla": {
+			"toBuffer": "1"
+		},
+		"textMode": [".", ",", "(", ")", "^", "1"]
+	},
+	"2": {
+		"vanilla": {
+			"toBuffer": "2"
+		},
+		"textMode": ["a", "b", "c", "2"]
+	},
+	"3": {
+		"vanilla": {
+			"toBuffer": "3"
+		},
+		"textMode": ["d", "e", "f", "3"]
+	},
+	"4": {
+		"vanilla": {
+			"toBuffer": "4"
+		},
+		"textMode": ["g", "h", "i", "4"]
+	},
+	"5": {
+		"vanilla": {
+			"toBuffer": "5"
+		},
+		"textMode": ["j", "k", "l", "5"]
+	},
+	"6": {
+		"vanilla": {
+			"toBuffer": "6"
+		},
+		"textMode": ["m", "n", "o", "6"]
+	},
+	"7": {
+		"vanilla": {
+			"toBuffer": "7"
+		},
+		"textMode": ["p", "q", "r", "s", "7"]
+	},
+	"8": {
+		"vanilla": {
+			"toBuffer": "8"
+		},
+		"textMode": ["t", "u", "v", "8"]
+	},
+	"9": {
+		"vanilla": {
+			"toBuffer": "9"
+		},
+		"textMode": ["w", "x", "y", "z", "9"]
+	},
+	"0": {
+		"shift": {
+			"toBuffer": "."
+		},
+		"vanilla": {
+			"toBuffer": "0"
+		},
+		"textMode": [" ", "=", "0"]
+	},
+	"+": {
+		"ctrlShift": {
+			"toBuffer": "L",
+			"toExpression": "log"
+		},
+		"ctrl": {
+			"toBuffer": "l",
+			"toExpression": "ln"
+		},
+		"shift": {
+			"toBuffer": "^"
+		},
+		"vanilla": {
+			"toBuffer": "+"
+		},
+		"textMode": ["+"]
+	},
+	"-": {
+		"ctrlShift": {
+			"toBuffer": "S",
+			"toExpression": "asin"
+		},
+		"ctrl": {
+			"toBuffer": "s",
+			"toExpression": "sin"
+		},
+		"shift": {
+			"toBuffer": "a",
+			"toExpression": "Ans"
+		},
+		"vanilla": {
+			"toBuffer": "-"
+		},
+		"textMode": ["-"]
+	},
+	"*": {
+		"ctrlShift": {
+			"toBuffer": "C",
+			"toExpression": "acos"
+		},
+		"ctrl": {
+			"toBuffer": "c",
+			"toExpression": "cos"
+		},
+		"shift": {
+			"toBuffer": "("
+		},
+		"vanilla": {
+			"toBuffer": "*"
+		},
+		"textMode": ["*"]
+	},
+	"/": {
+		"ctrlShift": {
+			"toBuffer": "T",
+			"toExpression": "atan"
+		},
+		"ctrl": {
+			"toBuffer": "t",
+			"toExpression": "tan"
+		},
+		"shift": {
+			"toBuffer": ")"
+		},
+		"vanilla": {
+			"toBuffer": "/"
+		},
+		"textMode": ["/"]
 	}
 }
