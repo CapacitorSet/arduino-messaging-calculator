@@ -129,8 +129,6 @@ void loop () {
 					printBuffer = false;
 					clearScreen = false;
 					textMode = !textMode;
-					expression = "";
-					buffer = "";
 					#if DEBUG
 						Serial.print("Toggling textMode");
 					#endif
