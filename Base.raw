@@ -96,6 +96,8 @@ void send() {
 		Serial1.print(expression);
 		inviato = true;
 	}
+	if (DEBUG)
+		Serial.println(expression);
 }
 
 void loop () {
@@ -127,6 +129,8 @@ void loop () {
 					printBuffer = false;
 					clearScreen = false;
 					textMode = !textMode;
+					expression = "";
+					buffer = "";
 					#if DEBUG
 						Serial.print("Toggling textMode");
 					#endif
@@ -135,6 +139,14 @@ void loop () {
 			case 'S':
 				if (shift && ctrl) {
 					lcd.scrollDisplayLeft();
+				} else if(textMode) {
+					if (ctrl) 
+						readMsg = true;
+					else{
+						printBuffer = false,
+						clearScreen = false;
+						send();
+					}
 				} else {
 					printBuffer = false;
 					clearScreen = false;
@@ -245,10 +257,12 @@ void loop () {
 			expression = "";
 			inviato = false;
 		}
+		newMessage = false;
+	}
+
+	if (textMode) {
 		lcd.setCursor(0, 1);
 		lcd.print(messaggio);
-		/*readMsg = true; */
-		newMessage = false;
 	}
 }
 
