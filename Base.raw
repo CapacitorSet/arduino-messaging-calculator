@@ -96,8 +96,9 @@ void send() {
 		Serial1.print(expression);
 		inviato = true;
 	}
-	if (DEBUG)
+	#if DEBUG
 		Serial.println(expression);
+	#endif
 }
 
 void loop () {
@@ -113,7 +114,8 @@ void loop () {
 		if (textMode == true) {
 			if (key == prevKey && (millis() - time) < 1000) {
 					tapCount++;
-					expression = expression.substring(0, expression.length() - 1);
+					buffer = buffer.substring(0, buffer.length() - 1);
+					expression = expression.substring(0, expression.length() - latestExpressionLength);
 					time = millis();
 			} // Cancella il token precedente
 			else {
