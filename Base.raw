@@ -45,7 +45,6 @@ char messaggio[MAX_MSG_SIZE+1];
 char inChar=-1; // Where to store the character read
 int index = 0; // Index into array; where to store the character
 bool newMessage = false;
-bool readMsg = false;
 bool inviato = false;
 
 // Per il multitap
@@ -139,11 +138,13 @@ void loop () {
 			case 'S':
 				if (shift && ctrl) {
 					lcd.scrollDisplayLeft();
-				} else if(textMode) {
-					if (ctrl) 
-						readMsg = true;
-					else{
-						printBuffer = false,
+				} else if (textMode) {
+					if (ctrl) { // Ctrl+S in textMode clears the message queue.
+						clear_array(messaggio, MAX_MSG_SIZE);
+						index = 0;
+						readMsg = false;
+					} else {
+						printBuffer = false;
 						clearScreen = false;
 						send();
 					}
@@ -222,16 +223,12 @@ void loop () {
 		prevKey = key;
 	}
 
-	if (Serial1.available()) {
-		if (readMsg) {
-			clear_array(messaggio, MAX_MSG_SIZE);
-			index = 0;
-			readMsg = false;
-		}
+	if (Serial1.available()) { // As soon as serial data is available
 		delay(20);
 		if (index > 0){
-			if(DEBUG)
+			#if DEBUG
 				Serial.println("Nuovo messaggio aggiunto in coda");
+			#endif
 			messaggio[index++] = '-';
 		}
 		while (Serial1.available()){
