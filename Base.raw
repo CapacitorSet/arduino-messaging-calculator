@@ -1,3 +1,6 @@
+#define SERIAL_INTERFACE Serial1
+// Change to Serial if you want to debug the messaging feature using the serial monitor
+
 #define DEBUG true
 #define SHIFT_KEY_PIN 4
 #define CTRL_KEY_PIN 3
@@ -41,7 +44,7 @@ Keypad customKeypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 bool clearScreen = true; // Per cancellare lo splash screen
 
 // Per la comunicazione
-char messaggio[MAX_MSG_SIZE+1];
+char messaggio[MAX_MSG_QUEUE_SIZE+1];
 char inChar=-1; // Where to store the character read
 int index = 0; // Index into array; where to store the character
 bool newMessage = false;
@@ -140,7 +143,7 @@ void loop () {
 					lcd.scrollDisplayLeft();
 				} else if (textMode) {
 					if (ctrl) { // Ctrl+S in textMode clears the message queue.
-						clear_array(messaggio, MAX_MSG_SIZE);
+						clear_array(messaggio, MAX_MSG_QUEUE_SIZE);
 						index = 0;
 					} else {
 						printBuffer = false;
@@ -222,7 +225,7 @@ void loop () {
 		prevKey = key;
 	}
 
-	if (Serial1.available()) { // As soon as serial data is available
+	if (SERIAL_INTERFACE.available()) { // As soon as serial data is available
 		if (index > 0){
 			#if DEBUG
 				Serial.println("Nuovo messaggio aggiunto in coda");
@@ -230,7 +233,7 @@ void loop () {
 			messaggio[index++] = '-';
 		}
 
-		inChar = Serial1.read(); // Read a character
+		inChar = SERIAL_INTERFACE.read(); // Read a character
 		#if DEBUG
 			Serial.print("> ");
 			Serial.println(inChar);
