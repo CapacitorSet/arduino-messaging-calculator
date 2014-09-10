@@ -51,8 +51,10 @@ char value[RESULT_MAX_SIZE]; // as string
 // Per la comunicazione
 char messaggio[MAX_MSG_SIZE+1];
 char inChar=-1; // Where to store the character read
-byte index = 0; // Index into array; where to store the character
-bool newMessage = true;
+int index = 0; // Index into array; where to store the character
+bool newMessage = false;
+bool readMsg = false;
+bool inviato = false;
 
 // Per il multitap
 char prevKey = '\0';
@@ -91,6 +93,7 @@ void setup () {
 }
 
 void scrivi(String testo, bool raw) {
+	lcd.clear();
 	if (!raw) {
 		testo.replace("l", "ln ");
 		testo.replace("L", "log ");
@@ -103,7 +106,11 @@ void scrivi(String testo, bool raw) {
 		testo.replace("T", "atan ");
 	}
 	lcd.print(testo);
-        if(testo.length() > DISPLAY_SIZE - 1){
+	if (textMode) {
+		lcd.setCursor(0, 1);
+		lcd.print(messaggio);
+	}
+    if(testo.length() > DISPLAY_SIZE - 1){
 		#if DEBUG
 			Serial.println("Auto Scrolling");
 		#endif
@@ -112,30 +119,26 @@ void scrivi(String testo, bool raw) {
 	}
 }
 
-void loop () {
-	if (Serial1.available()) {
-		newMessage = true;
-		inChar = Serial1.read(); // Read a character
-		#if DEBUG
-			Serial.println(inChar);
-		#endif
-		if (inChar == '£') {
-			for (int i = 0; i < MAX_MSG_SIZE+1; i++) {
-				messaggio[i] = '\0';
-			}
-		}
-		if(index < MAX_MSG_SIZE) {
-			messaggio[index] = inChar; // Store it
-			messaggio[++index] = '\0'; // Null terminate the string
-		}
+void clear_array(char *string, int length){
+	for (int i = 0; i < length; i++)
+		string[i] = '\0';
+}
+
+void send() {
+	if (textMode){
+		Serial1.print(espressione);
+		inviato = true;
 	}
+}
+
+void loop () {
 
 	bool vaScritto = false;
 	bool raw = false;
 	char key = customKeypad.getKey();
 	const bool shift = !digitalRead(SHIFT_KEY_PIN);
 	const bool ctrl  = !digitalRead(CTRL_KEY_PIN);
-	
+
 	if (key) {
 		if (textMode) { raw = true; }
 		if (shift && ctrl && (key == '5')) {
@@ -150,7 +153,6 @@ void loop () {
 		if (shift && ctrl && (key == 'S')) {
 			clearScreen = false;
 			vaScritto = false;
-			textMode = !textMode;
 			lcd.scrollDisplayLeft();
 		} else
 		if (shift && ctrl && (key == 'D')) {
@@ -165,7 +167,7 @@ void loop () {
 			prevKey = '\0'; // E' difficile da spiegare, ma va tenuto altrimenti non si comporta in modo naturale per l'utente.
 		} else
 		if (textMode) {
-			if (key == prevKey && (millis() - time) < 1000) {
+			if (key == prevKey && (millis() - time) < 1000 && key != 'S') {
 				tapCount++;
 				espressione = espressione.substring(0, espressione.length() - 1);
 				time = millis();
@@ -180,7 +182,7 @@ void loop () {
 				/* TEXTMODE_KEYS */
 				/* Don't delete the comment above, it is used in make.js */
 				case 'S':
-					// TODO
+					send();
 					break;
 			}
 		} else if (shift && ctrl) {
@@ -285,6 +287,7 @@ void loop () {
 							lcd.setCursor(0, 1);
 							String tmp = process(espressione); // try to convert the infix expression to postfix.
 							postfix = "";
+							espressione = "";
 							if (infix_postfix (tmp, postfix)) {
 								#if SERIAL_DEBUG
 									Serial.print("Postfix: ");
@@ -333,6 +336,47 @@ void loop () {
 			lcd.setCursor(0, 0);
 			scrivi(espressione, raw);
 		}
+	}
+
+	if (Serial1.available()) {
+		if (readMsg) {
+			clear_array(messaggio, MAX_MSG_SIZE);
+			index = 0;
+			readMsg = false;
+		}
+		delay(20);
+		if (index > 0){
+			if(DEBUG)
+				Serial.println("Nuovo messaggio aggiunto in coda");
+			messaggio[index++] = '-';
+		}
+		while (Serial1.available()){
+			inChar = Serial1.read(); // Read a character
+			#if DEBUG
+				Serial.println(inChar);
+			#endif
+			if(index < MAX_MSG_SIZE - 1) {
+				messaggio[index] = inChar; // Store it
+				index++;
+			}
+		}
+		messaggio[index] = '\0';
+		newMessage = true;
+	}
+
+	if (newMessage && textMode) {
+		lcd.clear();
+		lcd.setCursor(0, 0);
+		lcd.print(espressione);
+		if (inviato) {
+			lcd.print(" INVIATO!");
+			espressione = "";
+			inviato = false;
+		}
+		lcd.setCursor(0, 1);
+		lcd.print(messaggio);
+		/*readMsg = true; */
+		newMessage = false;
 	}
 }
 
