@@ -129,11 +129,14 @@ void loop () {
 				if (textMode && shift && !ctrl) {
 					printBuffer = false;
 					clearScreen = false;
+					char messageCount[4];
+					itoa(nuoviMessaggi, messageCount, 10); // Casta l'integer a char*. Altrimenti, se ci fossero tipo 33 messages, l'lcd direbbe "! nuovi messaggi", perché il carattere ASCII 33 è "!"
+					// I know itoa() is nonstandard, but using sprintf() would take ALMOST NINE HUNDRED bytes more, so deal with it.
 
 					lcd.setCursor(0, 1);
 					lcd.write("                "); // Sedici spazi, in modo da clearare la riga sotto
 					lcd.setCursor(0, 1); // E torna all'inizio
-					lcd.write(nuoviMessaggi);
+					lcd.write(messageCount);
 					lcd.write(" nuovi messaggi");
 				}
 				break;
@@ -219,7 +222,7 @@ void loop () {
 					lcd.setCursor(0, 0);
 					char* messaggio;
 					if (messaggi.isEmpty()) {
-						messaggio = "Nessun messaggio";
+						lcd.write("Nessun messaggio");
 					} else {
 						char character = 'a';
 						while (character != '\0') { // Keeps popping until \0
@@ -228,7 +231,6 @@ void loop () {
 						}
 						nuoviMessaggi--;
 					}
-					lcd.write(messaggio);
 					
 					if (messaggi.isEmpty() == true) {
 						digitalWrite(STATUS_LED_PIN, LOW);
