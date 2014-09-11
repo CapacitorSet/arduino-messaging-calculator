@@ -229,7 +229,6 @@ void loop () {
 							if (character != '\0') lcd.write(character);
 						}
 					}
-					Serial.println(messaggio);
 					lcd.write(messaggio);
 					
 					if (messaggi.isEmpty() == true) {
