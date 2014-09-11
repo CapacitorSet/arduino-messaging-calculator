@@ -20,7 +20,7 @@
 
 #define DISPLAY_SIZE 16
 
-#include <StackList.h>
+#include "StackList.h"
 #include "infix_postfix.h"
 #include "evaluate_postfix.h"
 #include "conversion_tools.h"
