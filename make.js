@@ -14,7 +14,7 @@ for (key in keys) {
 		replacement += "\tif (ctrl && shift) {\n"
 		replacement += "\t\tbuffer     += '" + data.ctrlShift.toBuffer + "';\n";
 		if (!data.ctrlShift.toExpression) { data.ctrlShift.toExpression = data.ctrlShift.toBuffer; } // default the toExpression property to the value of toBuffer
-		replacement += "\t\texpression += \"" + data.ctrlShift.toExpression + "\";\n";
+		replacement += "\t\texpression += " + quote(data.ctrlShift.toExpression) + ";\n";
 		replacement += "\t\tlatestExpressionLength = " + data.ctrlShift.toExpression.length + ";\n";
 		replacement += "\t} else\n";
 	}
@@ -22,7 +22,7 @@ for (key in keys) {
 		replacement += "\tif (ctrl && !shift) {\n"
 		replacement += "\t\tbuffer     += '" + data.ctrl.toBuffer + "';\n";
 		if (!data.ctrl.toExpression) { data.ctrl.toExpression = data.ctrl.toBuffer; } // default the toExpression property to the value of toBuffer
-		replacement += "\t\texpression += \"" + data.ctrl.toExpression + "\";\n";
+		replacement += "\t\texpression += " + quote(data.ctrl.toExpression) + ";\n";
 		replacement += "\t\tlatestExpressionLength = " + data.ctrl.toExpression.length + ";\n";
 		replacement += "\t} else\n";
 	}
@@ -30,7 +30,7 @@ for (key in keys) {
 		replacement += "\tif (!ctrl && shift) {\n"
 		replacement += "\t\tbuffer     += '" + data.shift.toBuffer + "';\n";
 		if (!data.shift.toExpression) { data.shift.toExpression = data.shift.toBuffer; } // default the toExpression property to the value of toBuffer
-		replacement += "\t\texpression += \"" + data.shift.toExpression + "\";\n";
+		replacement += "\t\texpression += " + quote(data.shift.toExpression) + ";\n";
 		replacement += "\t\tlatestExpressionLength = " + data.shift.toExpression.length + ";\n";
 		replacement += "\t} else\n";
 	}
@@ -42,8 +42,8 @@ for (key in keys) {
 	tapCount = 0;
 	data.textMode.forEach(function (key) {
 		replacement += "\t\t\t\tcase " + tapCount + ":\n";
-		replacement += "\t\t\t\t\tbuffer     += \"" + key + "\";\n";
-		replacement += "\t\t\t\t\texpression += \"" + key + "\";\n";
+		replacement += "\t\t\t\t\tbuffer     += " + quote(key) + ";\n";
+		replacement += "\t\t\t\t\texpression += " + quote(key) + ";\n";
 		replacement += "\t\t\t\t\tlatestExpressionLength = 1;\n";
 		replacement += "\t\t\t\t\tbreak;\n"
 		tapCount++;
@@ -52,12 +52,21 @@ for (key in keys) {
 	replacement += "\t\t} else {\n";
 	replacement += "\t\t\tbuffer     += '" + data.vanilla.toBuffer + "';\n";
 	if (!data.vanilla.toExpression) { data.vanilla.toExpression = data.vanilla.toBuffer; } // default the toExpression property to the value of toBuffer
-	replacement += "\t\t\texpression += \"" + data.vanilla.toExpression + "\";\n";
+	replacement += "\t\t\texpression += " + quote(data.vanilla.toExpression) + ";\n";
 	replacement += "\t\t\tlatestExpressionLength = " + data.vanilla.toExpression.length + ";\n";
 	replacement += "\t\t}\n";
 	replacement += "\t}\n";
 
 	replacement += "\tbreak;\n"
+}
+
+function quote(text) {
+	// Puts single or double quotes around text. Single quotes are preferred, in order to save space.
+	if (text.length == 1) {
+		return "'" + text + "'";
+	} else {
+		return '"' + text + '"';
+	}
 }
 
 originalProgram = originalProgram.replace("/* KEYS */", replacement);
