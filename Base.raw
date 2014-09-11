@@ -27,6 +27,7 @@
 #include <LiquidCrystal.h>
 #include "Keypad.h"
 #include "QueueArray.h"
+#include <EEPROM.h>
 
 #define ROWS 4
 #define COLS 4
@@ -58,6 +59,9 @@ int latestExpressionLength; // So that backspace works correctly with eg. log or
 QueueArray <char> messaggi, emptyQueue;
 int nuoviMessaggi = 0;
 
+bool waitingForMemoryAddress = false;
+bool waitingForData = false;
+String memoryAddress;
 
 void setup () {
 	#if DEBUG
@@ -72,6 +76,14 @@ void setup () {
 	pinMode(SHIFT_KEY_PIN, INPUT_PULLUP);
 	pinMode(CTRL_KEY_PIN, INPUT_PULLUP);
 	pinMode(STATUS_LED_PIN, OUTPUT);
+
+	if (EEPROM.read(1019) != '\0') {
+		// Must format memory
+		int location;
+		for (location = 0; location < 1024; location++) {
+			EEPROM.write(location, '\0');
+		}
+	}
 }
 
 void printExpr(String expression) {
@@ -154,24 +166,70 @@ void loop () {
 				if (shift && ctrl) {
 					printBuffer = false;
 					clearScreen = false;
-					lcd.scrollDisplayLeft();
-				} else if (textMode) {
-					if (!shift && ctrl) { // Ctrl+S in textMode clears the message queue.
-						messaggi = emptyQueue;
-					} else {
-						printBuffer = false;
-						clearScreen = false;
-						send(buffer);
+					lcd.scrollDisplayRight();
+				} else if (shift && !ctrl) {
+					printBuffer = false;
+					clearScreen = false;
+
+					if (waitingForMemoryAddress == true) {
+						waitingForMemoryAddress = false;
+						waitingForData = true;
+						memoryAddress = buffer;
 						buffer = "";
 						expression = "";
-						lcd.setCursor(0, 1);
-						lcd.write("Inviato!");
+						lcd.setCursor(0, 0);
+						lcd.write("Contenuto?");
+					} else if (waitingForData == true) {
+						waitingForData = false;
+						int realAddress = 64 * (memoryAddress.toInt() - 1);
+						for (int i = 0; i < 64; i++) {
+							EEPROM.write(realAddress + i, expression[i]);
+						}
+						lcd.setCursor(0,0);
+						lcd.print("Scritto in ");
+						lcd.print(memoryAddress);
+					}  else {
+						lcd.setCursor(0, 0);
+						lcd.write("Posizione?");
+						buffer = "";
+						expression = "";
+						waitingForMemoryAddress = true;
 					}
+				} else if (!shift && ctrl) {
+					printBuffer = false;
+					clearScreen = false;
+
+					if (waitingForMemoryAddress == true) {
+						waitingForMemoryAddress = false;
+						waitingForData = true;
+						memoryAddress = buffer;
+						buffer = "";
+						expression = "";
+						int realAddress = 64 * (memoryAddress.toInt() - 1);
+						lcd.setCursor(0, 0);
+						for (int i = 0; i < 64; i++) {
+							lcd.write(EEPROM.read(realAddress + i));
+						}
+					}  else {
+						lcd.setCursor(0, 0);
+						lcd.write("Posizione?");
+						buffer = "";
+						expression = "";
+						waitingForMemoryAddress = true;
+					}
+				} else if (textMode) {
+					printBuffer = false;
+					clearScreen = false;
+					send(buffer);
+					buffer = "";
+					expression = "";
+					lcd.setCursor(0, 1);
+					lcd.write("Inviato!");
 				} else if (!shift && !ctrl && !textMode) {
 					printBuffer = false;
 					clearScreen = false;
-					lcd.setCursor(0, 1);
 
+					lcd.setCursor(0, 1);
 					String postfix;
 					double result, Ans;
 					String prevAns;
@@ -206,6 +264,7 @@ void loop () {
 					}
 					buffer     = "";
 					expression = "";
+					
 				} // It's magic *-* - CapacitorSet
 				// Don't question it. Anche perchè neanch'io ho idea di come funzioni. - CapacitorSet
 				break;
@@ -213,14 +272,13 @@ void loop () {
 				if (shift && ctrl) {
 					printBuffer = false;
 					clearScreen = false;
-					lcd.scrollDisplayRight();
+					lcd.scrollDisplayLeft();
 				} else if (textMode && shift && !ctrl) { // Shift+D shows the earliest unread message and removes it from memory
 					printBuffer = false;
 					clearScreen = false;
 
 					lcd.clear();
 					lcd.setCursor(0, 0);
-					char* messaggio;
 					if (messaggi.isEmpty()) {
 						lcd.write("Nessun messaggio");
 					} else {
