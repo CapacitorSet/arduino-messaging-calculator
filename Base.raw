@@ -76,14 +76,6 @@ void setup () {
 	pinMode(SHIFT_KEY_PIN, INPUT_PULLUP);
 	pinMode(CTRL_KEY_PIN, INPUT_PULLUP);
 	pinMode(STATUS_LED_PIN, OUTPUT);
-
-	if (EEPROM.read(1019) != '\0') {
-		// Must format memory
-		int location;
-		for (location = 0; location < 1024; location++) {
-			EEPROM.write(location, '\0');
-		}
-	}
 }
 
 void printExpr(String expression) {
