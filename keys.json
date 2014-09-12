@@ -64,12 +64,12 @@
 	},
 	"+": {
 		"ctrlShift": {
-			"toBuffer": "L",
-			"toExpression": "log"
+			"toBuffer": "L(",
+			"toExpression": "log("
 		},
 		"ctrl": {
-			"toBuffer": "l",
-			"toExpression": "ln"
+			"toBuffer": "l(",
+			"toExpression": "ln("
 		},
 		"shift": {
 			"toBuffer": "^"
@@ -81,12 +81,12 @@
 	},
 	"-": {
 		"ctrlShift": {
-			"toBuffer": "S",
-			"toExpression": "asin"
+			"toBuffer": "S(",
+			"toExpression": "asin("
 		},
 		"ctrl": {
-			"toBuffer": "s",
-			"toExpression": "sin"
+			"toBuffer": "s(",
+			"toExpression": "sin("
 		},
 		"shift": {
 			"toBuffer": "a",
@@ -99,12 +99,12 @@
 	},
 	"*": {
 		"ctrlShift": {
-			"toBuffer": "C",
-			"toExpression": "acos"
+			"toBuffer": "C(",
+			"toExpression": "acos("
 		},
 		"ctrl": {
 			"toBuffer": "c",
-			"toExpression": "cos"
+			"toExpression": "cos("
 		},
 		"shift": {
 			"toBuffer": "("
@@ -116,12 +116,12 @@
 	},
 	"/": {
 		"ctrlShift": {
-			"toBuffer": "T",
-			"toExpression": "atan"
+			"toBuffer": "T(",
+			"toExpression": "atan("
 		},
 		"ctrl": {
-			"toBuffer": "t",
-			"toExpression": "tan"
+			"toBuffer": "t(",
+			"toExpression": "tan("
 		},
 		"shift": {
 			"toBuffer": ")"

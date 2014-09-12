@@ -9,10 +9,10 @@ replacement = "\n";
 
 for (key in keys) {
 	data = keys[key]
-	replacement += "case '" + key + "':\n";
+	replacement += "case " + quote(key) + ":\n";
 	if (data.ctrlShift) {
 		replacement += "\tif (ctrl && shift) {\n"
-		replacement += "\t\tbuffer     += '" + data.ctrlShift.toBuffer + "';\n";
+		replacement += "\t\tbuffer     += " + quote(data.ctrlShift.toBuffer) + ";\n";
 		if (!data.ctrlShift.toExpression) { data.ctrlShift.toExpression = data.ctrlShift.toBuffer; } // default the toExpression property to the value of toBuffer
 		replacement += "\t\texpression += " + quote(data.ctrlShift.toExpression) + ";\n";
 		replacement += "\t\tlatestExpressionLength = " + data.ctrlShift.toExpression.length + ";\n";
@@ -20,7 +20,7 @@ for (key in keys) {
 	}
 	if (data.ctrl) {
 		replacement += "\tif (ctrl && !shift) {\n"
-		replacement += "\t\tbuffer     += '" + data.ctrl.toBuffer + "';\n";
+		replacement += "\t\tbuffer     += " + quote(data.ctrl.toBuffer) + ";\n";
 		if (!data.ctrl.toExpression) { data.ctrl.toExpression = data.ctrl.toBuffer; } // default the toExpression property to the value of toBuffer
 		replacement += "\t\texpression += " + quote(data.ctrl.toExpression) + ";\n";
 		replacement += "\t\tlatestExpressionLength = " + data.ctrl.toExpression.length + ";\n";
@@ -28,7 +28,7 @@ for (key in keys) {
 	}
 	if (data.shift) {
 		replacement += "\tif (!ctrl && shift) {\n"
-		replacement += "\t\tbuffer     += '" + data.shift.toBuffer + "';\n";
+		replacement += "\t\tbuffer     += " + quote(data.shift.toBuffer) + ";\n";
 		if (!data.shift.toExpression) { data.shift.toExpression = data.shift.toBuffer; } // default the toExpression property to the value of toBuffer
 		replacement += "\t\texpression += " + quote(data.shift.toExpression) + ";\n";
 		replacement += "\t\tlatestExpressionLength = " + data.shift.toExpression.length + ";\n";
@@ -50,7 +50,7 @@ for (key in keys) {
 	});
 	replacement += "\t\t\t}\n";
 	replacement += "\t\t} else {\n";
-	replacement += "\t\t\tbuffer     += '" + data.vanilla.toBuffer + "';\n";
+	replacement += "\t\t\tbuffer     += " + quote(data.vanilla.toBuffer) + ";\n";
 	if (!data.vanilla.toExpression) { data.vanilla.toExpression = data.vanilla.toBuffer; } // default the toExpression property to the value of toBuffer
 	replacement += "\t\t\texpression += " + quote(data.vanilla.toExpression) + ";\n";
 	replacement += "\t\t\tlatestExpressionLength = " + data.vanilla.toExpression.length + ";\n";
