@@ -115,7 +115,7 @@ void send(String message) {
 void loop () {
 
 	const char key = customKeypad.getKey();
-	bool printBuffer = true;
+	bool printExpression = true;
 	bool clearScreen = true;
 
 	if (key) {
@@ -139,7 +139,7 @@ void loop () {
 		switch (key) {
 			case '0':
 				if (textMode && shift && !ctrl) {
-					printBuffer = false;
+					printExpression = false;
 					clearScreen = false;
 					char messageCount[4];
 					itoa(nuoviMessaggi, messageCount, 10); // Casta l'integer a char*. Altrimenti, se ci fossero tipo 33 messages, l'lcd direbbe "! nuovi messaggi", perché il carattere ASCII 33 è "!"
@@ -154,7 +154,7 @@ void loop () {
 				break;
 			case '5':
 				if (shift && ctrl) {
-					printBuffer = false;
+					printExpression = false;
 					clearScreen = false;
 					textMode = !textMode;
 					#if DEBUG
@@ -164,11 +164,11 @@ void loop () {
 				break;
 			case 'S':
 				if (shift && ctrl) {
-					printBuffer = false;
+					printExpression = false;
 					clearScreen = false;
 					lcd.scrollDisplayRight();
 				} else if (shift && !ctrl) {
-					printBuffer = false;
+					printExpression = false;
 					clearScreen = false;
 
 					if (waitingForMemoryAddress == true) {
@@ -196,7 +196,7 @@ void loop () {
 						waitingForMemoryAddress = true;
 					}
 				} else if (!shift && ctrl) {
-					printBuffer = false;
+					printExpression = false;
 					clearScreen = false;
 
 					if (waitingForMemoryAddress == true) {
@@ -218,7 +218,7 @@ void loop () {
 						waitingForMemoryAddress = true;
 					}
 				} else if (textMode) {
-					printBuffer = false;
+					printExpression = false;
 					clearScreen = false;
 					send(buffer);
 					buffer = "";
@@ -226,7 +226,7 @@ void loop () {
 					lcd.setCursor(0, 1);
 					lcd.write("Inviato!");
 				} else if (!shift && !ctrl && !textMode) {
-					printBuffer = false;
+					printExpression = false;
 					clearScreen = false;
 
 					lcd.setCursor(0, 1);
@@ -270,11 +270,11 @@ void loop () {
 				break;
 			case 'D':
 				if (shift && ctrl) {
-					printBuffer = false;
+					printExpression = false;
 					clearScreen = false;
 					lcd.scrollDisplayLeft();
 				} else if (textMode && shift && !ctrl) { // Shift+D shows the earliest unread message and removes it from memory
-					printBuffer = false;
+					printExpression = false;
 					clearScreen = false;
 
 					lcd.clear();
@@ -312,7 +312,7 @@ void loop () {
 			lcd.clear();
 		}
 
-		if (printBuffer == true) {
+		if (printExpression == true) {
 			#if DEBUG
 				Serial.print("Printing ");
 				Serial.println(expression);
