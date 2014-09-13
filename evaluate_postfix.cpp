@@ -168,7 +168,7 @@ evaluate_postfix (String & postfix, double &numeratore, int &divisore) {
         
         switch (c){
           case '+':
-            subtract(args_numeratore[0], args_divisore[0], -args_numeratore[1], args_divisore[1], numeratori, divisori);
+            subtract(-args_numeratore[0], args_divisore[0], args_numeratore[1], args_divisore[1], numeratori, divisori);
             break;
 
           case '-':
