@@ -241,6 +241,11 @@ void loop () {
 
 							// print the result
 							lcd.print(value);
+							lcd.print('/');
+							
+							double_string (value, divisore, RESULT_PRECISION);
+							lcd.print(value);
+
 							// prevAns[0] = Ans[0];
 							// prevAns[1] = Ans[1];
 						} else {

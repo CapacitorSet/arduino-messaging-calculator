@@ -39,6 +39,55 @@ int mcm(int a, int b) {
     return temp ? (a / temp * b) : 0;
 }
 
+void simplify(int &a, int &b) {
+  int fattore = mcd(a, b);
+  a = (int) a / fattore;
+  b = (int) b / fattore;
+}
+
+void subtract(double numeratore1, int divisore1, double numeratore2, int divisore2, StackList<double> &numeratori, StackList<int> &divisori) {
+  if (fmod(numeratore1, 1) != 0) { // If the first arg is a double
+    numeratore2 = numeratore2 / divisore2;
+              // Casts the second item to a double (no need to convert args_divisore[1])
+    numeratori.push(numeratore2 - numeratore1);
+    divisori.push(1);
+  } else if (fmod(numeratore2,  1) != 0) { // If the second arg is a double
+    numeratore1 = numeratore1 / divisore1;
+    // Casts the first item to a double (no need to convert args_divisore[0])
+    numeratori.push(numeratore2 - numeratore1);
+    divisori.push(1);
+  } else {
+    int divisore = mcm(divisore1, divisore2);
+    numeratori.push((numeratore2 * divisore / divisore2) - (numeratore1 * divisore / divisore1));
+    divisori.push(divisore);
+  }
+}
+
+void divide(double numeratore1, int divisore1, double numeratore2, int divisore2, StackList<double> &numeratori, StackList<int> &divisori) {
+  if (numeratore1 == 0) {
+    Serial.print("div0");
+    return;
+  }
+  if (fmod(numeratore1, 1) != 0) { // If the first arg is a double
+    numeratore2 = numeratore2 / divisore2;
+              // Casts the second item to a double (no need to convert args_divisore[1])
+    numeratori.push(numeratore2 / numeratore1);
+    divisori.push(1);
+  } else if (fmod(numeratore2,  1) != 0) { // If the second arg is a double
+    numeratore1 = numeratore1 / divisore1;
+    // Casts the first item to a double (no need to convert args_divisore[0])
+    numeratori.push(numeratore2 / numeratore1);
+    divisori.push(1);
+  } else {
+    // a/b / c/d = a/b * d/c = ad/bc
+    int divisore = divisore1 * numeratore2;
+    int numeratore = numeratore1 * divisore2;
+    simplify(numeratore, divisore);
+    numeratori.push(numeratore);
+    divisori.push(divisore);
+  }
+}
+
 long powint(int factor, unsigned int exponent)
 {
     long product = 1;
@@ -119,40 +168,23 @@ evaluate_postfix (String & postfix, double &numeratore, int &divisore) {
         
         switch (c){
           case '+':
-            if (fmod(args_numeratore[0], 1) != 0) { // If the first arg is a double
-              args_numeratore[1] = args_numeratore[1] / args_divisore[1];
-              // Casts the second item to a double (no need to convert args_divisore[1])
-              numeratori.push(args_numeratore[0] + args_numeratore[1]);
-              divisori.push(1);
-            } else if (fmod(args_numeratore[1],  1) != 0) { // If the second arg is a double
-              args_numeratore[0] = args_numeratore[0] / args_divisore[0];
-              // Casts the first item to a double (no need to convert args_divisore[0])
-              numeratori.push(args_numeratore[0] + args_numeratore[1]);
-              divisori.push(1);
-            } else {
-              int divisore = mcm(args_divisore[0], args_divisore[1]);
-              numeratori.push((args_numeratore[0] * divisore / args_divisore[0]) + (args_numeratore[1] * divisore / args_divisore[1]));
-              divisori.push(divisore);
-            }
+            subtract(args_numeratore[0], args_divisore[0], -args_numeratore[1], args_divisore[1], numeratori, divisori);
             break;
 
-/*        case '-':
-            stack.push (vargs[1] - vargs[0]);
+          case '-':
+            subtract(args_numeratore[0], args_divisore[0], args_numeratore[1], args_divisore[1], numeratori, divisori);
             break;
 
           case '/':
-            if (vargs[0] != 0)
-              stack.push (vargs[1] / vargs[0]);
-            else
-              Serial.println("err3");
-              // POSTFIX-EVALUATION: value division by zero.
-            break;
+            divide(args_numeratore[0], args_divisore[0], args_numeratore[1], args_divisore[1], numeratori, divisori);
 
           case '*':
-            stack.push (vargs[1] * vargs[0]);
+            divide(args_numeratore[0], args_divisore[0], args_divisore[1], args_numeratore[1], numeratori, divisori);
+            // Notare che divisore e numeratore del secondo numero sono scambiati: questo lo rende equivalente a una moltiplicazione.
+            // a/b * c/d = a/b / d/c
             break;
 
-          case '.':
+/*        case '.':
             if (vargs[0] == 0) {
               stack.push(vargs[1]);
             } else {
