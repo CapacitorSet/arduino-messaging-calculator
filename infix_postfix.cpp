@@ -23,7 +23,6 @@
 // include some calculator libraries' headers.
 #include "infix_postfix.h"
 #include "parse_tools.h"
-#include "recovery_tools.h"
 
 // infix expression conversion to postfix (shunting-yard algorithm).
 bool
@@ -40,8 +39,6 @@ infix_postfix (String & infix, String & postfix) {
     return false;
   }
 
-  // set the printer of the stack.
-  stack.setPrinter (Serial);
   bool isDot = false;
   // handle each character from the infix expression.
   for (int i = 0; i < infix.length (); i++) {

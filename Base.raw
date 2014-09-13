@@ -237,12 +237,12 @@ void loop () {
 						// try to evaluate the postfix expression.
 						if (evaluate_postfix (postfix, numeratore, divisore)) {
 							// convert the result as string.
-							// double_string (value, Ans, RESULT_PRECISION);
+							double_string (value, numeratore, RESULT_PRECISION);
 
 							// print the result
-							// lcd.print(value);
-							//prevAns[0] = Ans[0];
-							//prevAns[1] = Ans[1];
+							lcd.print(value);
+							// prevAns[0] = Ans[0];
+							// prevAns[1] = Ans[1];
 						} else {
 							lcd.write("Can'tEvalPostfix");
 							#if DEBUG

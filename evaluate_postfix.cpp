@@ -23,7 +23,6 @@
 // include some calculator libraries' headers.
 #include "evaluate_postfix.h"
 #include "parse_tools.h"
-#include "recovery_tools.h"
 
  int mcd(int a, int b) {
     for (;;)
@@ -64,9 +63,6 @@ evaluate_postfix (String & postfix, double &numeratore, int &divisore) {
     return false;
   }
 
-  // set the printer of the stack.
-  // stack.setPrinter (Serial);
-
   // handle each character from the postfix expression.
   for (int i = 0; i < postfix.length (); i++) {
     // get the character.
@@ -77,13 +73,14 @@ evaluate_postfix (String & postfix, double &numeratore, int &divisore) {
       // if the character is an identifier.
       if (is_identifier (c)) {
         // necessary for later reference.
-        // stack.push (0);
+        numeratori.push (0);
 
-        double digits;
         // try to fetch / calculate a multi-digit integer number.
-        for (; i < postfix.length () && is_identifier (c = postfix.charAt (i)); i++)
+        for (; i < postfix.length () && is_identifier (c = postfix.charAt (i)); i++) {
           // calculate the number so far with its digits.
           numeratori.push(10.0 * numeratori.pop() + (c - '0'));
+        }
+        divisori.push(1); // An integer number has divisor 1
 
         // fix the index in order to 'ungetch' the non-identifier character.
         i--;
@@ -108,25 +105,26 @@ evaluate_postfix (String & postfix, double &numeratore, int &divisore) {
 
         // if there was memory allocation error.
         if (args_numeratore == NULL) {
-          reset ("err3");
+          Serial.println("err3");
           // POSTFIX-EVALUATION: insufficient memory for storing operator arguments.
         }
 
         // fetch all the arguments of the operator.
         for (int arg = 0; arg < nargs; arg++) {
-          args_numeratore[arg] = numeratori.pop ();
+          args_numeratore[arg] = numeratori.pop();
+          args_divisore[arg] = divisori.pop();
         }
 
         // evaluate the operator with its operands.
         
         switch (c){
           case '+':
-            if (fmod(args_numeratore[0], 1) == 0) { // If the first arg is a double
+            if (fmod(args_numeratore[0], 1) != 0) { // If the first arg is a double
               args_numeratore[1] = args_numeratore[1] / args_divisore[1];
               // Casts the second item to a double (no need to convert args_divisore[1])
               numeratori.push(args_numeratore[0] + args_numeratore[1]);
               divisori.push(1);
-            } else if (fmod(args_numeratore[1],  1) == 0) { // If the second arg is a double
+            } else if (fmod(args_numeratore[1],  1) != 0) { // If the second arg is a double
               args_numeratore[0] = args_numeratore[0] / args_divisore[0];
               // Casts the first item to a double (no need to convert args_divisore[0])
               numeratori.push(args_numeratore[0] + args_numeratore[1]);
@@ -146,7 +144,7 @@ evaluate_postfix (String & postfix, double &numeratore, int &divisore) {
             if (vargs[0] != 0)
               stack.push (vargs[1] / vargs[0]);
             else
-              reset ("err3");
+              Serial.println("err3");
               // POSTFIX-EVALUATION: value division by zero.
             break;
 
@@ -198,7 +196,7 @@ evaluate_postfix (String & postfix, double &numeratore, int &divisore) {
             if (vargs[0] > 0) {
               stack.push(log(vargs[0]));
             } else {
-              reset("ln of a nonpositive number");
+              Serial.println("ln of a nonpositive number");
             }
             break;
           
@@ -206,7 +204,7 @@ evaluate_postfix (String & postfix, double &numeratore, int &divisore) {
             if (vargs[0] > 0) {
               stack.push(log10(vargs[0]));
             } else {
-              reset("log of a nonpositive number");
+              Serial.println("log of a nonpositive number");
             }
             break;*/
         }

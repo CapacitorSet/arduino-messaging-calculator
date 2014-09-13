@@ -73,9 +73,6 @@ class StackList {
     // get the number of items in the stack.
     int count () const;
 
-    // set the printer of the stack.
-    void setPrinter (Print & p);
-
   private:
     // exit report method in case of error.
     void exit (const char * m) const;
@@ -94,7 +91,6 @@ class StackList {
 
     typedef node * link; // synonym for pointer to a node.
 
-    Print * printer; // the printer of the stack.
     int size;        // the size of the stack.
     link head;       // the head of the list.
 };
@@ -104,7 +100,6 @@ template<typename T>
 StackList<T>::StackList () {
   size = 0;       // set the size of stack to zero.
   head = NULL;    // set the head of the list to point nowhere.
-  printer = NULL; // set the printer of stack to point nowhere.
 }
 
 // clear the stack (destructor).
@@ -116,7 +111,6 @@ StackList<T>::~StackList () {
   }
 
   size = 0;       // set the size of stack to zero.
-  printer = NULL; // set the printer of stack to point nowhere.
 }
 
 // push an item to the stack.
@@ -182,20 +176,12 @@ int StackList<T>::count () const {
   return size;
 }
 
-// set the printer of the stack.
-template<typename T>
-void StackList<T>::setPrinter (Print & p) {
-  printer = &p;
-}
-
 // exit report method in case of error.
 template<typename T>
 void StackList<T>::exit (const char * m) const {
-  // print the message if there is a printer.
-  if (printer)
-    printer->println (m);
 
   // loop blinking until hardware reset.
+  Serial.println(m);
   blink ();
 }
 
