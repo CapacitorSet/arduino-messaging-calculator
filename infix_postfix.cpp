@@ -33,7 +33,7 @@ infix_postfix (String & infix, String & postfix) {
 
   // check if the expression is empty.
   if (infix.length () <= 0) {
-    #if SERIAL_DEBUG
+    #if DEBUG
       Serial.println("err6");
       // POSTFIX-EVALUATION: expression has too many values.
     #endif
@@ -131,7 +131,7 @@ infix_postfix (String & infix, String & postfix) {
         // if the stack runs out without finding a left
         // parenthesis there are mismatched parentheses.
         if (!pe) {
-          #if SERIAL_DEBUG
+          #if DEBUG
             Serial.println("err7");
             // SHUNTING-YARD: parentheses mismatched in the expression.
           #endif
@@ -142,7 +142,7 @@ infix_postfix (String & infix, String & postfix) {
         stack.pop ();
       }
       else {
-        #if SERIAL_DEBUG
+        #if DEBUG
           Serial.println("err8");
           // SHUNTING-YARD: there is an unknown token in the expression.
         #endif
@@ -157,7 +157,7 @@ infix_postfix (String & infix, String & postfix) {
     sc = stack.peek ();
 
     if (sc == '(' || sc == ')') {
-      #if SERIAL_DEBUG
+      #if DEBUG
         Serial.println("err9");
         // SHUNTING-YARD: parentheses mismatched in the expression.
       #endif

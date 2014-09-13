@@ -57,7 +57,7 @@ evaluate_postfix (String & postfix, double &numeratore, int &divisore) {
 
   // check if the expression is empty.
   if (postfix.length () <= 0) {
-    #if SERIAL_DEBUG
+    #if DEBUG
       Serial.println("err1");
       // POSTFIX-EVALUATION: the expression is empty.
     #endif
@@ -95,7 +95,7 @@ evaluate_postfix (String & postfix, double &numeratore, int &divisore) {
 
         // if there aren't enough arguments in the stack.
         if (nargs > numeratori.count ()) {
-          #if SERIAL_DEBUG
+          #if DEBUG
             Serial.println("err2");
             // POSTFIX-EVALUATION: not sufficient operator arguments in the expression.
           #endif
@@ -216,7 +216,7 @@ evaluate_postfix (String & postfix, double &numeratore, int &divisore) {
         free(args_divisore);
       } else {
         // the character is unknown.
-        #if SERIAL_DEBUG
+        #if DEBUG
           Serial.println("err4");
           // POSTFIX-EVALUATION: there is an unknown token in the expression.
         #endif
@@ -231,7 +231,7 @@ evaluate_postfix (String & postfix, double &numeratore, int &divisore) {
     numeratore = numeratori.pop();
     divisore = divisori.pop();
   } else {
-    #if SERIAL_DEBUG
+    #if DEBUG
       Serial.println("err5");
       // POSTFIX-EVALUATION: expression has too many values.
     #endif

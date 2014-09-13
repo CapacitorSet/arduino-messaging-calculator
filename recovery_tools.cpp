@@ -23,7 +23,7 @@
 // perform a state that the system needs a reset.
 void
 reset (const char * msg) {
-  #if SERIAL_DEBUG
+  #if DEBUG
     Serial.println(msg);
   #endif
   while (true);
