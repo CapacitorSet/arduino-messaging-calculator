@@ -35,8 +35,8 @@ long powint(int factor, unsigned int exponent)
 
 // postfix expression evaluation algorithm.
 bool
-evaluate_postfix (String & postfix, double & result) {
-  StackList <double> stack; // the operands stack.
+evaluate_postfix (String & postfix, double* & result) {
+  StackList <double*> stack; // the operands stack.
   char c;                   // the character parsed.
 
   // check if the expression is empty.
