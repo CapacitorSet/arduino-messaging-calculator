@@ -229,7 +229,7 @@ void loop () {
 					char value[RESULT_MAX_SIZE]; // as string
 					
 					if (infix_postfix (buffer, postfix)) { // try to convert the infix expression to postfix.
-						#if SERIAL_DEBUG
+						#if DEBUG
 							Serial.print("Postfix: ");
 							Serial.println(postfix);
 						#endif
