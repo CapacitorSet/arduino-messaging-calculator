@@ -25,6 +25,21 @@
 #include "parse_tools.h"
 #include "recovery_tools.h"
 
+ int mcd(int a, int b) {
+    for (;;)
+    {
+        if (a == 0) return b;
+        b %= a;
+        if (b == 0) return a;
+        a %= b;
+    }
+}
+
+int mcm(int a, int b) {
+    int temp = mcd(a, b);
+    return temp ? (a / temp * b) : 0;
+}
+
 long powint(int factor, unsigned int exponent)
 {
     long product = 1;
@@ -35,8 +50,9 @@ long powint(int factor, unsigned int exponent)
 
 // postfix expression evaluation algorithm.
 bool
-evaluate_postfix (String & postfix, double* & result) {
-  StackList <double*> stack; // the operands stack.
+evaluate_postfix (String & postfix, double &numeratore, int &divisore) {
+  StackList <double> numeratori;
+  StackList <int> divisori; // gli operandi
   char c;                   // the character parsed.
 
   // check if the expression is empty.
@@ -49,7 +65,7 @@ evaluate_postfix (String & postfix, double* & result) {
   }
 
   // set the printer of the stack.
-  stack.setPrinter (Serial);
+  // stack.setPrinter (Serial);
 
   // handle each character from the postfix expression.
   for (int i = 0; i < postfix.length (); i++) {
@@ -61,12 +77,13 @@ evaluate_postfix (String & postfix, double* & result) {
       // if the character is an identifier.
       if (is_identifier (c)) {
         // necessary for later reference.
-        stack.push (0);
+        // stack.push (0);
 
+        double digits;
         // try to fetch / calculate a multi-digit integer number.
         for (; i < postfix.length () && is_identifier (c = postfix.charAt (i)); i++)
           // calculate the number so far with its digits.
-          stack.push (10.0 * stack.pop () + (c - '0'));
+          numeratori.push(10.0 * numeratori.pop() + (c - '0'));
 
         // fix the index in order to 'ungetch' the non-identifier character.
         i--;
@@ -77,7 +94,7 @@ evaluate_postfix (String & postfix, double* & result) {
         int nargs = op_operands_count (c);
 
         // if there aren't enough arguments in the stack.
-        if (nargs > stack.count ()) {
+        if (nargs > numeratori.count ()) {
           #if SERIAL_DEBUG
             Serial.println("err2");
             // POSTFIX-EVALUATION: not sufficient operator arguments in the expression.
@@ -86,25 +103,42 @@ evaluate_postfix (String & postfix, double* & result) {
         }
 
         // allocate enough memory for the arguments of the operator.
-        double *vargs = (double *) malloc (sizeof (double) * nargs);
+        double *args_numeratore = (double *) malloc (sizeof (double) * nargs);
+        double *args_divisore   = (double *) malloc (sizeof (double) * nargs);
 
         // if there was memory allocation error.
-        if (vargs == NULL)
+        if (args_numeratore == NULL) {
           reset ("err3");
           // POSTFIX-EVALUATION: insufficient memory for storing operator arguments.
+        }
 
         // fetch all the arguments of the operator.
-        for (int arg = 0; arg < nargs; arg++)
-          vargs[arg] = stack.pop ();
+        for (int arg = 0; arg < nargs; arg++) {
+          args_numeratore[arg] = numeratori.pop ();
+        }
 
         // evaluate the operator with its operands.
         
         switch (c){
           case '+':
-            stack.push (vargs[1] + vargs[0]);
+            if (fmod(args_numeratore[0], 1) == 0) { // If the first arg is a double
+              args_numeratore[1] = args_numeratore[1] / args_divisore[1];
+              // Casts the second item to a double (no need to convert args_divisore[1])
+              numeratori.push(args_numeratore[0] + args_numeratore[1]);
+              divisori.push(1);
+            } else if (fmod(args_numeratore[1],  1) == 0) { // If the second arg is a double
+              args_numeratore[0] = args_numeratore[0] / args_divisore[0];
+              // Casts the first item to a double (no need to convert args_divisore[0])
+              numeratori.push(args_numeratore[0] + args_numeratore[1]);
+              divisori.push(1);
+            } else {
+              int divisore = mcm(args_divisore[0], args_divisore[1]);
+              numeratori.push((args_numeratore[0] * divisore / args_divisore[0]) + (args_numeratore[1] * divisore / args_divisore[1]));
+              divisori.push(divisore);
+            }
             break;
 
-          case '-':
+/*        case '-':
             stack.push (vargs[1] - vargs[0]);
             break;
 
@@ -174,11 +208,12 @@ evaluate_postfix (String & postfix, double* & result) {
             } else {
               reset("log of a nonpositive number");
             }
-            break;
+            break;*/
         }
 
         // deallocate memory for operands.
-        free (vargs);
+        free(args_numeratore);
+        free(args_divisore);
       } else {
         // the character is unknown.
         #if SERIAL_DEBUG
@@ -191,10 +226,11 @@ evaluate_postfix (String & postfix, double* & result) {
   }
 
   // if there is only one element in the stack.
-  if (stack.count () == 1)
+  if (numeratori.count() == 1) {
     // return the result of the expression.
-    result = stack.pop ();
-  else {
+    numeratore = numeratori.pop();
+    divisore = divisori.pop();
+  } else {
     #if SERIAL_DEBUG
       Serial.println("err5");
       // POSTFIX-EVALUATION: expression has too many values.

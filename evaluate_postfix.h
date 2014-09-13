@@ -25,6 +25,6 @@
 #include <Arduino.h>
 
 // postfix expression evaluation algorithm.
-bool evaluate_postfix (String & postfix, double & result);
+bool evaluate_postfix (String & postfix, double &numeratore, int &divisore);
 
 #endif // _EVALUATE_POSTFIX_H
