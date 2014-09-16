@@ -239,10 +239,11 @@ void loop () {
 
 							// print the result
 							lcd.print(value);
-							lcd.print('/');
-							
-							int_string(value, divisore);
-							lcd.print(value);
+							if (divisore != 1) {
+								lcd.print('/');
+								int_string(value, divisore);
+								lcd.print(value);
+							}
 
 							// prevAns[0] = Ans[0];
 							// prevAns[1] = Ans[1];
