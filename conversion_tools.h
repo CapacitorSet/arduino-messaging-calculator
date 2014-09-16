@@ -29,5 +29,8 @@ char *double_string (char *string,
                      double value,
                      int places = 5,
                      int width = 0);
+                     
+char *int_string (char *string,
+                     int value);
 
 #endif // _CONVERSION_TOOLS_H

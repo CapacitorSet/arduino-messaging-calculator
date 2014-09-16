@@ -176,7 +176,8 @@ evaluate_postfix (String & postfix, double &numeratore, int &divisore) {
             break;
 
           case '/':
-            divide(args_numeratore[0], args_divisore[0], args_numeratore[1], args_divisore[1], numeratori, divisori);
+            divide(args_numeratore[1], args_divisore[1], args_numeratore[0], args_divisore[0], numeratori, divisori);
+            break;
 
           case '*':
             divide(args_numeratore[0], args_divisore[0], args_divisore[1], args_numeratore[1], numeratori, divisori);

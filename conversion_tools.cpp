@@ -118,3 +118,8 @@ double_string (char *string, double value, int places, int width) {
   // return the string.
   return string;
 }
+
+char* int_string(char* string, int value) {
+  itoa(value, string, 10);
+  return string;
+}
