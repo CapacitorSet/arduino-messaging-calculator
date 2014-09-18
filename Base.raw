@@ -1,24 +1,31 @@
-#define SERIAL_INTERFACE Serial
+#define MESSAGING_INTERFACE Serial
 // Change to Serial if you want to debug the messaging feature using the serial monitor.
 // Don't forget to set the line ending to "NL only"!
 
-#define DEBUG true
-#define SHIFT_KEY_PIN 4
-#define CTRL_KEY_PIN 3
-#define STATUS_LED_PIN 13
-#define LCD_COLS 16
-#define LCD_ROWS 2
-#define LCD_0 A0
-#define LCD_1 A1
-#define LCD_2 A2
-#define LCD_3 A3
-#define LCD_4 A4
-#define LCD_5 A5
-
+// Configuration
+#define DEBUG true        // Print debug messages to Serial?
+#define SHIFT_KEY_PIN 4   // On which pin is the Shift key?
+#define CTRL_KEY_PIN 3    // On which pin is the Ctrl key?
+#define LCD_COLS 16       // How many columns does the LCD display have?
+#define LCD_ROWS 2        // How many rows does the LCD display have?
+#define LCD_RS_PIN A0     // On which pin is the LCD RS pin?
+#define LCD_ENABLE_PIN A1 // On which pin is the LCD Enable pin?
+#define LCD_D4_PIN A2     // On which pin is the LCD D4 pin?
+#define LCD_D5_PIN A3     // On which pin is the LCD D5 pin?
+#define LCD_D6_PIN A4     // On which pin is the LCD D6 pin?
+#define LCD_D7_PIN A5     // On which pin is the LCD D7 pin?
+#define KEYPAD_ROWS 4
+#define KEYPAD_COLS 4
+char keys[KEYPAD_ROWS][KEYPAD_COLS] = {
+	{'1','2','3','+'},
+	{'4','5','6','-'},
+	{'7','8','9','*'},
+	{'S','0','D','/'}
+};
+byte rowPins[KEYPAD_ROWS] = {12, 11, 10, 9};
+byte colPins[KEYPAD_COLS] = { 8,  7,  6, 5};
 #define RESULT_PRECISION 8
 #define RESULT_MAX_SIZE 64
-
-#define DISPLAY_SIZE 16
 
 #include "StackList.h"
 #include "infix_postfix.h"
@@ -29,75 +36,83 @@
 #include "QueueArray.h"
 #include <EEPROM.h>
 
-#define ROWS 4
-#define COLS 4
-char keys[ROWS][COLS] = {
-	{'1','2','3','+'},
-	{'4','5','6','-'},
-	{'7','8','9','*'},
-	{'S','0','D','/'}
-};
-byte rowPins[ROWS] = {12, 11, 10, 9};
-byte colPins[COLS] = { 8,  7,  6, 5};
-
-
-// initialize the library with the numbers of the interface pins
-LiquidCrystal lcd(LCD_0, LCD_1, LCD_2, LCD_3, LCD_4, LCD_5);
-Keypad customKeypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
-bool clearScreen = true; // Per cancellare lo splash screen
+// Initialize the LCD object with the appropriate pins
+LiquidCrystal lcd(LCD_RS_PIN, LCD_ENABLE_PIN, LCD_D4_PIN, LCD_D5_PIN, LCD_D6_PIN, LCD_D7_PIN);
+// Initialize the keypad with the appropriate data
+Keypad customKeypad = Keypad(makeKeymap(keys), rowPins, colPins, KEYPAD_ROWS, KEYPAD_COLS);
 
 // Per il multitap
-char prevKey = '\0';
-int tapCount = 0;
-bool textMode = false;
-unsigned long time = 0;
+char prevKey = '\0'; // The previous key
+int tapCount = 0; // The number of consecutive taps so far
+unsigned long time = 0; // The timestamp of the latest tap
 
 // Per scrivere
-String buffer;
-String expression;
+String buffer; // Contiene l'espressione letta dal parser
+String expression; // Contiene il testo mostrato sull'LCD
+bool textMode = false; // Indica se la text mode è attiva o no
 int latestExpressionLength; // So that backspace works correctly with eg. log or tan
-QueueArray <char> messaggi, emptyQueue;
-int nuoviMessaggi = 0;
+/* TODO: fix the line above (turn it into a LIFO stack) */
+QueueArray <char> messaggi, emptyQueue; // Rispettivamente, la coda dei messaggi e una coda vuota
+int nuoviMessaggi = 0; // Il numero di messaggi non letti
 
-bool waitingForMemoryAddress = false;
-bool waitingForData = false;
-String memoryAddress;
+bool waitingForMemoryAddress = false; // Si sta aspettando un indirizzo dall'utente?
+bool waitingForData = false; // Si sta aspettando dei dati (da scrivere in EEPROM)?
+String memoryAddress; // Stores the memory address between loop() calls
 
 void setup () {
 	#if DEBUG
+		// Enable the Serial interface for sending debug messages
 		Serial.begin (9600);
 	#endif
-	Serial1.begin(9600);
+	MESSAGING_INTERFACE.begin(9600);
 
 	// Set up the LCD
 	lcd.begin(LCD_COLS, LCD_ROWS);
 	lcd.print("Tette *-*");
 
-	pinMode(SHIFT_KEY_PIN, INPUT_PULLUP);
+	pinMode(SHIFT_KEY_PIN, INPUT_PULLUP); // "Keys" are pushbuttons, so they must be read using pullup resistors
 	pinMode(CTRL_KEY_PIN, INPUT_PULLUP);
-	pinMode(STATUS_LED_PIN, OUTPUT);
+
+	lcd.blink(); // Users be like "oooh, a blinking cursor"
 }
 
 void printExpr(String expression) {
+	/* Appropriately prints an expression to the LCD display */
+
+	#if DEBUG
+		Serial.print("Printing ");
+		Serial.println(expression);
+	#endif
+
+
 	lcd.print(expression);
-    if(expression.length() > DISPLAY_SIZE - 1) {
+    if(expression.length() > LCD_COLS - 1) { // If the text is longer than the whole screen
 		#if DEBUG
-			Serial.println("Auto Scrolling");
+			Serial.println("Autoscrolling");
 		#endif
-		for (int i = 0; i <= expression.length() - DISPLAY_SIZE; i++) {
-			lcd.scrollDisplayLeft();
+		for (int i = 0; i <= expression.length() - LCD_COLS; i++) {
+			lcd.scrollDisplayLeft(); // Scroll left exactly expression.length() - LCD_COLS times
 		}
 	}
 }
 
-void clear_array(char *string, int length){
-	for (int i = 0; i < length; i++)
-		string[i] = '\0';
+int getFirstPositionOfBlock(int block) {
+	const int realAddress = 64 * (block - 1);
+	/*
+	 * The code above is equivalent to:
+	 *
+	 *     blockNum = block--; // Because non-programmers begin counting from 1
+	 *     realAddress = 64*blockNum; // The first block starts at 0, the second one starts at 64, the third one at 128...
+	 *
+	*/
+	return realAddress;
 }
 
 void send(String message) {
-	SERIAL_INTERFACE.print(message);
-	SERIAL_INTERFACE.print('\n');
+	/* Sends a message on the messaging interface */
+
+	MESSAGING_INTERFACE.print(message); // Don't you dare simplify this to .println! .println uses \r\n as a line terminator, whereas this programme uses \n.
+	MESSAGING_INTERFACE.print('\n');
 	#if DEBUG
 		Serial.print("<- ");
 		Serial.println(expression);
@@ -105,35 +120,36 @@ void send(String message) {
 }
 
 void loop () {
-
 	const char key = customKeypad.getKey();
 	bool printExpression = true;
 	bool clearScreen = true;
 
 	if (key) {
-		const bool shift = !digitalRead(SHIFT_KEY_PIN);
-		const bool ctrl  = !digitalRead(CTRL_KEY_PIN);
+		const bool shift = !digitalRead(SHIFT_KEY_PIN); // It's negated because, well, that's how it's meant to be done.
+		const bool ctrl  = !digitalRead(CTRL_KEY_PIN);  // The alternative would be using pulldown resistors, but there is no such thing on an Arduino, which means an external component would be required. Ew.
 
+		// Multitap management
 		if (textMode == true) {
-			if (key == prevKey && (millis() - time) < 1000) {
+			if (key == prevKey && (millis() - time) < 1000) { // If the last tap was <1 second ago
+					// Remove the last element inserted in the buffer and in the expression
 					tapCount++;
 					buffer = buffer.substring(0, buffer.length() - 1);
 					expression = expression.substring(0, expression.length() - latestExpressionLength);
-					time = millis();
-			} // Cancella il token precedente
-			else {
-				tapCount=0;
-				prevKey = '\0';
-				time = millis();
 			}
+			else {
+				tapCount = 0;
+				prevKey = '\0';
+			}
+			time = millis(); // Record the time of this tap for future reference
 		}
 
+		// Custom keypress behaviour
 		switch (key) {
 			case '0':
-				if (textMode && shift && !ctrl) {
+				if (textMode && shift && !ctrl) { // Shift+0 in text mode displays the message count
 					printExpression = false;
 					clearScreen = false;
-					char messageCount[4];
+					char messageCount[4]; // Allocate 4 characters for the message count (0...9999)
 
 					lcd.setCursor(0, 1);
 					lcd.write("                "); // Sedici spazi, in modo da clearare la riga sotto
@@ -143,38 +159,42 @@ void loop () {
 				}
 				break;
 			case '5':
-				if (shift && ctrl) {
+				if (shift && ctrl) { // Shift+Ctrl+5 toggles text mode, no matter the current mode
 					printExpression = false;
 					clearScreen = false;
 					textMode = !textMode;
 					#if DEBUG
-						Serial.println("Toggling textMode");
+						Serial.println("Toggling text mode");
 					#endif
 				}
 				break;
 			case 'S':
-				if (shift && ctrl) {
+				if (shift && ctrl) { // Shift+Ctrl+S scrolls the display to the right, no matter the current mode.
 					printExpression = false;
 					clearScreen = false;
-					lcd.scrollDisplayRight();
-				} else if (shift && !ctrl) {
+					lcd.scrollDisplayRight(); // That's *right*, it's not a typo. This is what the users perceive as "natural" scrolling.
+				} else if (shift && !ctrl) { // Shift+S writes to the EEPROM, no matter the current mode
 					printExpression = false;
 					clearScreen = false;
 
-					if (waitingForMemoryAddress == true) {
+					// Note that the first case that will be executed is the else case
+
+					if (waitingForMemoryAddress == true) { // If we're expecting an address
 						waitingForMemoryAddress = false;
 						waitingForData = true;
-						memoryAddress = buffer;
+						memoryAddress = buffer; // Holds the user input between calls to loop()
 						buffer = "";
 						expression = "";
 						lcd.setCursor(0, 0);
 						lcd.write("Contenuto?");
-					} else if (waitingForData == true) {
+					} else if (waitingForData == true) { // If we're expecting data
 						waitingForData = false;
-						int realAddress = 64 * (memoryAddress.toInt() - 1);
+						const int realAddress = getFirstPositionOfBlock(memoryAddress.toInt());
 						for (int i = 0; i < 64; i++) {
+							// Read 64 bytes from expression and copy them to the EEPROM
 							EEPROM.write(realAddress + i, expression[i]);
 						}
+
 						lcd.setCursor(0,0);
 						lcd.print("Scritto in ");
 						lcd.print(memoryAddress);
@@ -185,17 +205,19 @@ void loop () {
 						expression = "";
 						waitingForMemoryAddress = true;
 					}
-				} else if (!shift && ctrl) {
+				} else if (!shift && ctrl) { // Ctrl+S reads the EEPROM, no matter the current mode
 					printExpression = false;
 					clearScreen = false;
 
-					if (waitingForMemoryAddress == true) {
+					// Note that the first case to be executed is the else case
+
+					if (waitingForMemoryAddress == true) { // If we're expecting a memory address
 						waitingForMemoryAddress = false;
 						waitingForData = true;
 						memoryAddress = buffer;
 						buffer = "";
 						expression = "";
-						int realAddress = 64 * (memoryAddress.toInt() - 1);
+						const int realAddress = getFirstPositionOfBlock(memoryAddress.toInt());
 						lcd.setCursor(0, 0);
 						for (int i = 0; i < 64; i++) {
 							lcd.write(EEPROM.read(realAddress + i));
@@ -207,7 +229,7 @@ void loop () {
 						expression = "";
 						waitingForMemoryAddress = true;
 					}
-				} else if (textMode) {
+				} else if (!shift && !ctrl && textMode) { // In text mode, S sends a message
 					printExpression = false;
 					clearScreen = false;
 					send(buffer);
@@ -215,7 +237,7 @@ void loop () {
 					expression = "";
 					lcd.setCursor(0, 1);
 					lcd.write("Inviato!");
-				} else if (!shift && !ctrl && !textMode) {
+				} else if (!shift && !ctrl && !textMode) { // Outside of text mode, S evaluates the current expression
 					printExpression = false;
 					clearScreen = false;
 
@@ -223,54 +245,47 @@ void loop () {
 					String postfix;
 					double numeratore;
 					int divisore;
-//					double* prevAns;
-					char value[RESULT_MAX_SIZE]; // as string
+//					double* prevAns; // to be implemented
+					char value[RESULT_MAX_SIZE]; // The result, as a char*
+
+					#if DEBUG
+						Serial.print("Infix: ");
+						Serial.println(buffer);
+					#endif
 					
-					if (infix_postfix (buffer, postfix)) { // try to convert the infix expression to postfix.
+					if (infix_postfix (buffer, postfix)) { // try to convert the infix expression to postfix
 						#if DEBUG
 							Serial.print("Postfix: ");
 							Serial.println(postfix);
 						#endif
 
-						// try to evaluate the postfix expression.
+						// try to evaluate the postfix expression
 						if (evaluate_postfix (postfix, numeratore, divisore)) {
-							// convert the result as string.
+							// casta il numeratore a string
 							double_string (value, numeratore, RESULT_PRECISION);
 
-							// print the result
 							lcd.print(value);
-							if (divisore != 1) {
+							if (divisore != 1) { // se c'è un divisore
 								lcd.print('/');
-								int_string(value, divisore);
+								int_string(value, divisore); // castalo a string prima di printarlo
 								lcd.print(value);
 							}
-
-							// prevAns[0] = Ans[0];
-							// prevAns[1] = Ans[1];
 						} else {
 							lcd.write("Can'tEvalPostfix");
-							#if DEBUG
-								Serial.println(postfix);
-							#endif
 						}
 					} else {
 						lcd.write("CantConvert2Infx");
-						#if DEBUG
-							Serial.println(buffer);
-						#endif
 					}
 					buffer     = "";
-					expression = "";
-					
-				} // It's magic *-* - CapacitorSet
-				// Don't question it. Anche perchè neanch'io ho idea di come funzioni. - CapacitorSet
+					expression = "";					
+				}
 				break;
 			case 'D':
-				if (shift && ctrl) {
+				if (shift && ctrl) { // Shift+Ctrl+D scrolls the display left, no matter the current mode
 					printExpression = false;
 					clearScreen = false;
-					lcd.scrollDisplayLeft();
-				} else if (textMode && shift && !ctrl) { // Shift+D shows the earliest unread message and removes it from memory
+					lcd.scrollDisplayLeft(); // See the comment on Shift+Ctrl+S
+				} else if (textMode && shift && !ctrl) { // Shift+D in text mode shows the earliest unread message and removes it from memory
 					printExpression = false;
 					clearScreen = false;
 
@@ -279,16 +294,12 @@ void loop () {
 					if (messaggi.isEmpty()) {
 						lcd.write("Nessun messaggio");
 					} else {
-						char character = 'a';
-						while (character != '\0') { // Keeps popping until \0
+						char character = messaggi.pop();
+						while (character != '\0') { // Keep popping until \0
 							character = messaggi.pop();
 							if (character != '\0') lcd.write(character);
 						}
 						nuoviMessaggi--;
-					}
-					
-					if (messaggi.isEmpty() == true) {
-						digitalWrite(STATUS_LED_PIN, LOW);
 					}
 				} else {
 					buffer = buffer.substring(0, buffer.length() - 1);
@@ -310,31 +321,25 @@ void loop () {
 		}
 
 		if (printExpression == true) {
-			#if DEBUG
-				Serial.print("Printing ");
-				Serial.println(expression);
-			#endif
 			lcd.setCursor(0, 0);
 			printExpr(expression);
 		}
 		prevKey = key;
 	}
 
-	if (SERIAL_INTERFACE.available()) { // As soon as serial data is available
-		char inChar = SERIAL_INTERFACE.read(); // Read a character
+	if (MESSAGING_INTERFACE.available()) { // As soon as serial data is available
+		char inChar = MESSAGING_INTERFACE.read(); // Read a character
 		#if DEBUG
 			Serial.print("-> ");
 			Serial.println(inChar);
 		#endif
-		if (inChar == '\n') {
+		if (inChar == '\n') { // Alla fine del messaggio
 			#if DEBUG
-				Serial.println("Nuovo messaggio aggiunto in coda");
+				Serial.println("Nuovo messaggio queued");
 			#endif
-			inChar = '\0';
+			inChar = '\0'; // Aggiungi un fine stringa anziché un newline
 			nuoviMessaggi++;
 		}
-		messaggi.push(inChar);
-		digitalWrite(STATUS_LED_PIN, HIGH);
+		messaggi.push(inChar); // Pusha il carattere nello stack di messaggi
 	}
 }
-
