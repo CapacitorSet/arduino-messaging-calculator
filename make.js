@@ -11,7 +11,7 @@ for (key in keys) {
 	data = keys[key]
 	replacement += "case " + quote(key) + ":\n";
 	if (data.ctrlShift) {
-		replacement += "\tif (ctrl && shift) {\n"
+		replacement += "\tif (CTRL && SHIFT) {\n"
 		replacement += "\t\tbuffer     += " + quote(data.ctrlShift.toBuffer) + ";\n";
 		if (!data.ctrlShift.toExpression) { data.ctrlShift.toExpression = data.ctrlShift.toBuffer; } // default the toExpression property to the value of toBuffer
 		replacement += "\t\texpression += " + quote(data.ctrlShift.toExpression) + ";\n";
@@ -19,7 +19,7 @@ for (key in keys) {
 		replacement += "\t} else\n";
 	}
 	if (data.ctrl) {
-		replacement += "\tif (ctrl && !shift) {\n"
+		replacement += "\tif (CTRL && !SHIFT) {\n"
 		replacement += "\t\tbuffer     += " + quote(data.ctrl.toBuffer) + ";\n";
 		if (!data.ctrl.toExpression) { data.ctrl.toExpression = data.ctrl.toBuffer; } // default the toExpression property to the value of toBuffer
 		replacement += "\t\texpression += " + quote(data.ctrl.toExpression) + ";\n";
@@ -27,15 +27,15 @@ for (key in keys) {
 		replacement += "\t} else\n";
 	}
 	if (data.shift) {
-		replacement += "\tif (!ctrl && shift) {\n"
+		replacement += "\tif (!CTRL && SHIFT) {\n"
 		replacement += "\t\tbuffer     += " + quote(data.shift.toBuffer) + ";\n";
 		if (!data.shift.toExpression) { data.shift.toExpression = data.shift.toBuffer; } // default the toExpression property to the value of toBuffer
 		replacement += "\t\texpression += " + quote(data.shift.toExpression) + ";\n";
 		replacement += "\t\tlatestExpressionLength = " + data.shift.toExpression.length + ";\n";
 		replacement += "\t} else\n";
 	}
-	replacement += "\tif (!ctrl && !shift) {\n"
-	replacement += "\t\tif (textMode) {\n";
+	replacement += "\tif (!CTRL && !SHIFT) {\n"
+	replacement += "\t\tif (TEXT_MODE) {\n";
 	textModeChoices = data.textMode.length;
 	replacement += "\t\t\ttapCount = tapCount % " + textModeChoices + ";\n";
 	replacement += "\t\t\tswitch (tapCount) {\n"

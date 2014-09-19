@@ -27,6 +27,42 @@ byte colPins[KEYPAD_COLS] = { 8,  7,  6, 5};
 #define RESULT_PRECISION 8
 #define RESULT_MAX_SIZE 64
 
+#define PRINT_EXPRESSION_BIT 0x01
+#define PRINT_EXPRESSION_NEGBIT 0xFE
+#define CLEAR_SCREEN_BIT 0x02
+#define CLEAR_SCREEN_NEGBIT 0xFD
+#define TEXT_MODE_BIT 0x04
+#define WAITING_FOR_DATA_BIT 0x08
+#define WAITING_FOR_DATA_NEGBIT 0xF7
+#define WAITING_FOR_ADDRESS_BIT 0x10
+#define WAITING_FOR_ADDRESS_NEGBIT 0xEF
+#define SHIFT_BIT 0x20
+#define SHIFT_NEGBIT 0xDF
+#define CTRL_BIT 0x40
+#define CTRL_NEGBIT 0xBF
+
+#define ENABLE_PRINT_EXPRESSION settings |= PRINT_EXPRESSION_BIT
+#define DISABLE_PRINT_EXPRESSION settings &= PRINT_EXPRESSION_NEGBIT
+#define ENABLE_CLEAR_SCREEN settings |= CLEAR_SCREEN_BIT
+#define DISABLE_CLEAR_SCREEN settings &= CLEAR_SCREEN_NEGBIT
+#define TOGGLE_TEXT_MODE settings ^= TEXT_MODE_BIT
+#define ENABLE_WAITING_FOR_DATA settings |= WAITING_FOR_DATA_BIT
+#define DISABLE_WAITING_FOR_DATA settings &= WAITING_FOR_DATA_NEGBIT
+#define ENABLE_WAITING_FOR_ADDRESS settings |= WAITING_FOR_ADDRESS_BIT
+#define DISABLE_WAITING_FOR_ADDRESS settings &= WAITING_FOR_ADDRESS_NEGBIT
+#define ENABLE_SHIFT settings |= SHIFT_BIT
+#define DISABLE_SHIFT settings &= SHIFT_NEGBIT
+#define ENABLE_CTRL settings |= CTRL_BIT
+#define DISABLE_CTRL settings &= CTRL_NEGBIT
+
+#define PRINT_EXPRESSION (settings && PRINT_EXPRESSION_BIT)
+#define CLEAR_SCREEN (settings && CLEAR_SCREEN_BIT)
+#define TEXT_MODE (settings && TEXT_MODE_BIT)
+#define WAITING_FOR_DATA (settings && WAITING_FOR_DATA_BIT)
+#define WAITING_FOR_ADDRESS (settings && WAITING_FOR_ADDRESS_BIT)
+#define SHIFT (settings && SHIFT_BIT)
+#define CTRL (settings && CTRL_BIT)
+
 #include "StackList.h"
 #include "infix_postfix.h"
 #include "evaluate_postfix.h"
@@ -49,14 +85,13 @@ unsigned long time = 0; // The timestamp of the latest tap
 // Per scrivere
 String buffer; // Contiene l'espressione letta dal parser
 String expression; // Contiene il testo mostrato sull'LCD
-bool textMode = false; // Indica se la text mode è attiva o no
 int latestExpressionLength; // So that backspace works correctly with eg. log or tan
 /* TODO: fix the line above (turn it into a LIFO stack) */
 QueueArray <char> messaggi, emptyQueue; // Rispettivamente, la coda dei messaggi e una coda vuota
 int nuoviMessaggi = 0; // Il numero di messaggi non letti
 
-bool waitingForMemoryAddress = false; // Si sta aspettando un indirizzo dall'utente?
-bool waitingForData = false; // Si sta aspettando dei dati (da scrivere in EEPROM)?
+byte settings = 0x00; // All values are false
+
 String memoryAddress; // Stores the memory address between loop() calls
 
 void setup () {
@@ -121,15 +156,25 @@ void send(String message) {
 
 void loop () {
 	const char key = customKeypad.getKey();
-	bool printExpression = true;
-	bool clearScreen = true;
 
 	if (key) {
-		const bool shift = !digitalRead(SHIFT_KEY_PIN); // It's negated because, well, that's how it's meant to be done.
-		const bool ctrl  = !digitalRead(CTRL_KEY_PIN);  // The alternative would be using pulldown resistors, but there is no such thing on an Arduino, which means an external component would be required. Ew.
+
+		ENABLE_PRINT_EXPRESSION;
+		ENABLE_CLEAR_SCREEN;
+
+		if (digitalRead(SHIFT_KEY_PIN)) {
+			DISABLE_SHIFT; // Note that if digitalRead returns TRUE, Shift must be DISABLED, because of pullup resistors
+		} else {
+			ENABLE_SHIFT;
+		}
+		if (digitalRead(CTRL_KEY_PIN)) {
+			DISABLE_CTRL; // Note that if digitalRead returns TRUE, Shift must be DISABLED, because of pullup resistors
+		} else {
+			ENABLE_CTRL;
+		}
 
 		// Multitap management
-		if (textMode == true) {
+		if (TEXT_MODE) {
 			if (key == prevKey && (millis() - time) < 1000) { // If the last tap was <1 second ago
 					// Remove the last element inserted in the buffer and in the expression
 					tapCount++;
@@ -146,9 +191,9 @@ void loop () {
 		// Custom keypress behaviour
 		switch (key) {
 			case '0':
-				if (textMode && shift && !ctrl) { // Shift+0 in text mode displays the message count
-					printExpression = false;
-					clearScreen = false;
+				if (TEXT_MODE && SHIFT && CTRL) { // Shift+0 in text mode displays the message count
+					DISABLE_PRINT_EXPRESSION;
+					DISABLE_CLEAR_SCREEN;
 					char messageCount[4]; // Allocate 4 characters for the message count (0...9999)
 
 					lcd.setCursor(0, 1);
@@ -159,36 +204,36 @@ void loop () {
 				}
 				break;
 			case '5':
-				if (shift && ctrl) { // Shift+Ctrl+5 toggles text mode, no matter the current mode
-					printExpression = false;
-					clearScreen = false;
-					textMode = !textMode;
+				if (SHIFT && CTRL) { // Shift+Ctrl+5 toggles text mode, no matter the current mode
+					DISABLE_PRINT_EXPRESSION;
+					DISABLE_CLEAR_SCREEN;
+					TOGGLE_TEXT_MODE;
 					#if DEBUG
 						Serial.println("Toggling text mode");
 					#endif
 				}
 				break;
 			case 'S':
-				if (shift && ctrl) { // Shift+Ctrl+S scrolls the display to the right, no matter the current mode.
-					printExpression = false;
-					clearScreen = false;
+				if (SHIFT && CTRL) { // Shift+Ctrl+S scrolls the display to the right, no matter the current mode.
+					DISABLE_PRINT_EXPRESSION;
+					DISABLE_CLEAR_SCREEN;
 					lcd.scrollDisplayRight(); // That's *right*, it's not a typo. This is what the users perceive as "natural" scrolling.
-				} else if (shift && !ctrl) { // Shift+S writes to the EEPROM, no matter the current mode
-					printExpression = false;
-					clearScreen = false;
+				} else if (SHIFT && !CTRL) { // Shift+S writes to the EEPROM, no matter the current mode
+					DISABLE_PRINT_EXPRESSION;
+					DISABLE_CLEAR_SCREEN;
 
 					// Note that the first case that will be executed is the else case
 
-					if (waitingForMemoryAddress == true) { // If we're expecting an address
-						waitingForMemoryAddress = false;
-						waitingForData = true;
+					if (WAITING_FOR_ADDRESS) { // If we're expecting an address
+						DISABLE_WAITING_FOR_ADDRESS;
+						ENABLE_WAITING_FOR_DATA;
 						memoryAddress = buffer; // Holds the user input between calls to loop()
 						buffer = "";
 						expression = "";
 						lcd.setCursor(0, 0);
 						lcd.write("Contenuto?");
-					} else if (waitingForData == true) { // If we're expecting data
-						waitingForData = false;
+					} else if (WAITING_FOR_DATA) { // If we're expecting data
+						DISABLE_WAITING_FOR_DATA;
 						const int realAddress = getFirstPositionOfBlock(memoryAddress.toInt());
 						for (int i = 0; i < 64; i++) {
 							// Read 64 bytes from expression and copy them to the EEPROM
@@ -203,17 +248,17 @@ void loop () {
 						lcd.write("Posizione?");
 						buffer = "";
 						expression = "";
-						waitingForMemoryAddress = true;
+						ENABLE_WAITING_FOR_ADDRESS;
 					}
-				} else if (!shift && ctrl) { // Ctrl+S reads the EEPROM, no matter the current mode
-					printExpression = false;
-					clearScreen = false;
+				} else if (!SHIFT && CTRL) { // Ctrl+S reads the EEPROM, no matter the current mode
+					DISABLE_PRINT_EXPRESSION;
+					DISABLE_CLEAR_SCREEN;
 
 					// Note that the first case to be executed is the else case
 
-					if (waitingForMemoryAddress == true) { // If we're expecting a memory address
-						waitingForMemoryAddress = false;
-						waitingForData = true;
+					if (WAITING_FOR_ADDRESS) { // If we're expecting a memory address
+						DISABLE_WAITING_FOR_ADDRESS;
+						ENABLE_WAITING_FOR_DATA;
 						memoryAddress = buffer;
 						buffer = "";
 						expression = "";
@@ -227,19 +272,19 @@ void loop () {
 						lcd.write("Posizione?");
 						buffer = "";
 						expression = "";
-						waitingForMemoryAddress = true;
+						ENABLE_WAITING_FOR_ADDRESS;
 					}
-				} else if (!shift && !ctrl && textMode) { // In text mode, S sends a message
-					printExpression = false;
-					clearScreen = false;
+				} else if (!SHIFT && !CTRL && TEXT_MODE) { // In text mode, S sends a message
+					DISABLE_PRINT_EXPRESSION;
+					DISABLE_CLEAR_SCREEN;
 					send(buffer);
 					buffer = "";
 					expression = "";
 					lcd.setCursor(0, 1);
 					lcd.write("Inviato!");
-				} else if (!shift && !ctrl && !textMode) { // Outside of text mode, S evaluates the current expression
-					printExpression = false;
-					clearScreen = false;
+				} else if (!SHIFT && !CTRL && !TEXT_MODE) { // Outside of text mode, S evaluates the current expression
+					DISABLE_PRINT_EXPRESSION;
+					DISABLE_CLEAR_SCREEN;
 
 					lcd.setCursor(0, 1);
 					String postfix;
@@ -281,13 +326,13 @@ void loop () {
 				}
 				break;
 			case 'D':
-				if (shift && ctrl) { // Shift+Ctrl+D scrolls the display left, no matter the current mode
-					printExpression = false;
-					clearScreen = false;
+				if (SHIFT && CTRL) { // Shift+Ctrl+D scrolls the display left, no matter the current mode
+					DISABLE_PRINT_EXPRESSION;
+					DISABLE_CLEAR_SCREEN;
 					lcd.scrollDisplayLeft(); // See the comment on Shift+Ctrl+S
-				} else if (textMode && shift && !ctrl) { // Shift+D in text mode shows the earliest unread message and removes it from memory
-					printExpression = false;
-					clearScreen = false;
+				} else if (TEXT_MODE && SHIFT && !CTRL) { // Shift+D in text mode shows the earliest unread message and removes it from memory
+					DISABLE_PRINT_EXPRESSION;
+					DISABLE_CLEAR_SCREEN;
 
 					lcd.clear();
 					lcd.setCursor(0, 0);
@@ -316,11 +361,11 @@ void loop () {
 			// If you wish to implement custom behaviour for a key, do so in the switch statement above this one.
 		}
 
-		if (clearScreen == true) {
+		if (CLEAR_SCREEN) {
 			lcd.clear();
 		}
 
-		if (printExpression == true) {
+		if (PRINT_EXPRESSION) {
 			lcd.setCursor(0, 0);
 			printExpr(expression);
 		}
