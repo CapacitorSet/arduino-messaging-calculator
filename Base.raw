@@ -55,13 +55,13 @@ byte colPins[KEYPAD_COLS] = { 8,  7,  6, 5};
 #define ENABLE_CTRL settings |= CTRL_BIT
 #define DISABLE_CTRL settings &= CTRL_NEGBIT
 
-#define PRINT_EXPRESSION (settings && PRINT_EXPRESSION_BIT)
-#define CLEAR_SCREEN (settings && CLEAR_SCREEN_BIT)
-#define TEXT_MODE (settings && TEXT_MODE_BIT)
-#define WAITING_FOR_DATA (settings && WAITING_FOR_DATA_BIT)
-#define WAITING_FOR_ADDRESS (settings && WAITING_FOR_ADDRESS_BIT)
-#define SHIFT (settings && SHIFT_BIT)
-#define CTRL (settings && CTRL_BIT)
+#define PRINT_EXPRESSION (settings & PRINT_EXPRESSION_BIT)
+#define CLEAR_SCREEN (settings & CLEAR_SCREEN_BIT)
+#define TEXT_MODE (settings & TEXT_MODE_BIT)
+#define WAITING_FOR_DATA (settings & WAITING_FOR_DATA_BIT)
+#define WAITING_FOR_ADDRESS (settings & WAITING_FOR_ADDRESS_BIT)
+#define SHIFT (settings & SHIFT_BIT)
+#define CTRL (settings & CTRL_BIT)
 
 #include "StackList.h"
 #include "infix_postfix.h"
