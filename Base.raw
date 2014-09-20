@@ -72,8 +72,6 @@ void setup () {
 
 	pinMode(SHIFT_KEY_PIN, INPUT_PULLUP); // "Keys" are pushbuttons, so they must be read using pullup resistors
 	pinMode(CTRL_KEY_PIN, INPUT_PULLUP);
-
-	lcd.blink(); // Users be like "oooh, a blinking cursor"
 }
 
 void printExpr(String expression) {
