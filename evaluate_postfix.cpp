@@ -185,61 +185,68 @@ evaluate_postfix (String & postfix, double &numeratore, int &divisore) {
             // a/b * c/d = a/b / d/c
             break;
 
-/*        case '.':
-            if (vargs[0] == 0) {
-              stack.push(vargs[1]);
-            } else {
-              stack.push (vargs[1] + (1/pow(10, ceil(log10(vargs[0]))))*vargs[0] * 10 - 1);
-            }
+          case '.':
+            // Assumption: both i divisori sono 1
+            numeratori.push(args_numeratore[1] + (1/pow(10, ceil(log10(args_numeratore[0]))))*args_numeratore[0] * 10 - 1);
+            divisori.push(1);
             break;
             
           case 's':
-            stack.push(sin(vargs[0]));
+            numeratori.push(sin(args_numeratore[0]/args_divisore[0]));
+            divisori.push(1);
             break;
             
           case 'c':
-            stack.push(cos(vargs[0]));
+            numeratori.push(sin(args_numeratore[0]/args_divisore[0]));
+            divisori.push(1);
             break;
           
           case 't':
-            stack.push(tan(vargs[0]));
+            numeratori.push(sin(args_numeratore[0]/args_divisore[0]));
+            divisori.push(1);
             break;
             
           case 'S':
-            stack.push(asin(vargs[0]));
+            numeratori.push(sin(args_numeratore[0]/args_divisore[0]));
+            divisori.push(1);
             break;
           
           case 'C':
-            stack.push(acos(vargs[0]));
+            numeratori.push(sin(args_numeratore[0]/args_divisore[0]));
+            divisori.push(1);
             break;
           
           case 'T':
-            stack.push(atan(vargs[0]));
+            numeratori.push(sin(args_numeratore[0]/args_divisore[0]));
+            divisori.push(1);
             break;
             
           case '^':
-            if ((vargs[0]-(int)vargs[0] == 0) && (vargs[1]-(int)vargs[1] == 0) && vargs[0] > 0) {
-              stack.push (powint(vargs[1], vargs[0]));
+            if ((args_numeratore[0]-(int)args_numeratore[0] == 0) && (args_numeratore[1]-(int)args_numeratore[1] == 0) && args_numeratore[0] > 0 && args_divisore[0] == 1 && args_divisore[1] == 1) {
+              numeratori.push(powint(args_numeratore[1], args_numeratore[0]));
             } else {
-              stack.push (pow(vargs[1], vargs[0]));
+              numeratori.push(pow(args_numeratore[1]/args_divisore[1], args_numeratore[0]/args_divisore[0]));
             }
+            divisori.push(1);
             break;
             
           case 'l':
-            if (vargs[0] > 0) {
-              stack.push(log(vargs[0]));
+            if (args_numeratore[0] > 0) {
+              numeratori.push(log(args_numeratore[0]/args_divisore[0]));
+              divisori.push(1);
             } else {
               Serial.println("ln of a nonpositive number");
             }
             break;
           
           case 'L':
-            if (vargs[0] > 0) {
-              stack.push(log10(vargs[0]));
+            if (args_numeratore[0] > 0) {
+              numeratori.push(log10(args_numeratore[0]/args_divisore[0]));
+              divisori.push(1);
             } else {
               Serial.println("log of a nonpositive number");
             }
-            break;*/
+            break;
         }
 
         // deallocate memory for operands.
