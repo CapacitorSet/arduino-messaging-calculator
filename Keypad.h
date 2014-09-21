@@ -64,7 +64,7 @@ const char NO_KEY = '\0';
 
 class Keypad {
 public:
-	Keypad(char *userKeymap, byte *row, byte *col, byte numRows, byte numCols);
+	Keypad(char *userKeymap, byte *row, byte *col);
 
 	void begin(char *userKeymap);
 	char getKey();

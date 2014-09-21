@@ -31,13 +31,13 @@
 */
 
 #include "Keypad.h"
+#define KEYPAD_ROWS 4
+#define KEYPAD_COLS 4
 
 // <<constructor>> Allows custom keymap, pin configuration, and keypad sizes.
-Keypad::Keypad(char *userKeymap, byte *row, byte *col, byte numRows, byte numCols) {
+Keypad::Keypad(char *userKeymap, byte *row, byte *col) {
     rowPins = row;
     columnPins = col;
-    size.rows = numRows;
-    size.columns = numCols;
 
     begin(userKeymap);
 
@@ -95,16 +95,16 @@ boolean Keypad::scanKeys() {
 	// I rewrote this method to provide a status change (anyKey OPEN/CLOSED) to the
 	// getKeyState() function which handles debouncing. Now we can scan the keypad
 	// without having to worry about huge debounce time delays.
-	for( int c=0; c<size.columns; c++) {
+	for( int c=0; c < KEYPAD_COLS; c++) {
 		digitalWrite(columnPins[c], LOW);
-		for( int r=0; r<size.rows; r++) {
+		for( int r=0; r < KEYPAD_ROWS; r++) {
 			curKey = digitalRead(rowPins[r]);
 			allKeys += curKey;
-			if(curKey==0) currentKey = keymap[c+(r*size.columns)];
+			if(curKey==0) currentKey = keymap[c+(r*KEYPAD_COLS)];
 
 			// All keys have been scanned. Set 'anyKey' value for use by getKeyState().
-			if( r==(size.rows-1) && c==(size.columns-1) ) {
-				if( allKeys==(size.rows*size.columns) )
+			if( r==(KEYPAD_ROWS-1) && c==(KEYPAD_COLS-1) ) {
+				if( allKeys==(KEYPAD_ROWS*KEYPAD_COLS) )
 					anyKey = OPEN;
 				else
 					anyKey = CLOSED;
@@ -200,12 +200,12 @@ void Keypad::transitionTo(KeyState nextState) {
 
 void Keypad::initializePins() {
     //configure column pin modes and states
-    for (byte C=0; C<size.columns; C++) {
+    for (byte C=0; C<KEYPAD_COLS; C++) {
         pinMode(columnPins[C],OUTPUT);
         digitalWrite(columnPins[C],LOW);
     }
     //configure row pin modes and states
-    for (byte R=0; R<size.rows; R++) {
+    for (byte R=0; R<KEYPAD_ROWS; R++) {
         pinMode(rowPins[R],INPUT);
 		digitalWrite(rowPins[R],HIGH);	// Enable the internal 20K pullup resistors for each row pin.
     }
