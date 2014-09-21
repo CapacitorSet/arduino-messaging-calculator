@@ -211,11 +211,6 @@ void Keypad::initializePins() {
     }
 }
 
-//added by Daniel Kern
-char* Keypad::getBuffer(){
-	return keyBuffer;
-}
-
 char* Keypad::growBuffer(char key){
 	for(int i = 0; i < 5; i++)
 	{
