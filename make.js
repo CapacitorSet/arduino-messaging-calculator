@@ -57,6 +57,7 @@ function quote(text) {
 }
 
 function generateManageKeyCode(data) {
+	if (typeof data.toExpression == 'undefined') data.toExpression = data.toBuffer;
 	return "\t\tManageKey(\"" + data.toBuffer + "\", \"" + data.toExpression + "\", buffer, expression, latestExpressionLength);\n";
 }
 
