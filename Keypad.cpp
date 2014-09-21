@@ -91,7 +91,7 @@ boolean Keypad::scanKeys() {
 	// keypad. If that is the case then the pins will need to be re-intialized
 	// each time before they are used.
 //     initializePins();
-	// The assumption above is currently wrong; therefore, the initialization can be commented out safely. - CapacitorSet
+		// The assumption above is currently wrong; therefore, the initialization can be commented out safely. - CapacitorSet
 
 	// I rewrote this method to provide a status change (anyKey OPEN/CLOSED) to the
 	// getKeyState() function which handles debouncing. Now we can scan the keypad
@@ -207,8 +207,7 @@ void Keypad::initializePins() {
     }
     //configure row pin modes and states
     for (byte R=0; R<KEYPAD_ROWS; R++) {
-        pinMode(rowPins[R],INPUT);
-		digitalWrite(rowPins[R],HIGH);	// Enable the internal 20K pullup resistors for each row pin.
+        pinMode(rowPins[R], INPUT_PULLUP);
     }
 }
 
