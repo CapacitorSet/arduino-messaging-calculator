@@ -1,35 +1,3 @@
-/*
-||
-|| @file Keypad.h
-|| @version 2.0
-|| @author Mark Stanley, Alexander Brevig
-|| @contact mstanley@technologist.com, alexanderbrevig@gmail.com
-||
-|| @description
-|| | This library provides a simple interface for using matrix
-|| | keypads. It supports the use of multiple keypads with the
-|| | same or different sets of keys.  It also supports user
-|| | selectable pins and definable keymaps.
-|| #
-||
-|| @license
-|| | This library is free software; you can redistribute it and/or
-|| | modify it under the terms of the GNU Lesser General Public
-|| | License as published by the Free Software Foundation; version
-|| | 2.1 of the License.
-|| |
-|| | This library is distributed in the hope that it will be useful,
-|| | but WITHOUT ANY WARRANTY; without even the implied warranty of
-|| | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-|| | Lesser General Public License for more details.
-|| |
-|| | You should have received a copy of the GNU Lesser General Public
-|| | License along with this library; if not, write to the Free Software
-|| | Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-|| #
-||
-*/
-
 #include "Keypad.h"
 #define KEYPAD_ROWS 4
 #define KEYPAD_COLS 4
@@ -39,7 +7,7 @@ Keypad::Keypad(char *userKeymap, byte *row, byte *col) {
     rowPins = row;
     columnPins = col;
 
-    begin(userKeymap);
+    keymap = userKeymap;
 
     debounceTime = 2;
     holdTime = 500;
@@ -55,11 +23,6 @@ Keypad::Keypad(char *userKeymap, byte *row, byte *col) {
 // before deciding if any variables, etc. need to be updated in their code.
 boolean Keypad::keyStateChanged() {
     return stateChanged;
-}
-
-// Let the user define a keymap - assume the same row/column count as defined in constructor
-void Keypad::begin( char *userKeymap) {
-    keymap = userKeymap;
 }
 
 char Keypad::getKey() {
@@ -198,24 +161,4 @@ void Keypad::initializePins() {
     for (byte R=0; R<KEYPAD_ROWS; R++) {
         pinMode(rowPins[R], INPUT_PULLUP);
     }
-}
-
-char* Keypad::growBuffer(char key){
-	for(int i = 0; i < 5; i++)
-	{
-		if(keyBuffer[i] == NULL) 
-	    {
-	    	keyBuffer[i] = key;
-	    	return keyBuffer;
-	    }
-		
-	}
-	return keyBuffer;
-}
-
-void Keypad::clearBuffer(){
-	for(int i = 0; i < 5; i++)
-	{
-		keyBuffer[i] = NULL;
-	}
 }
