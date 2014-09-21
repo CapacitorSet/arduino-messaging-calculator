@@ -41,8 +41,8 @@ Keypad::Keypad(char *userKeymap, byte *row, byte *col) {
 
     begin(userKeymap);
 
-    setDebounceTime(2);
-    setHoldTime(500);
+    debounceTime = 2;
+    holdTime = 500;
 	keypadEventListener = 0;
 
     transitionTo(IDLE);
@@ -117,10 +117,6 @@ boolean Keypad::scanKeys() {
 	return anyKey;		// Status tells if keys are OPEN or CLOSED.
 }
 
-// Private
-// I rewrote the state machine and renamed it. The old getKey() method failed
-// to return the IDLE state and was too tightly integrated with the key scan
-// to make simple changes without breaking it completely. But more importantly
 // only one key can ever be evaluated at one point in time.
 KeyState Keypad::getKeyState() {
 	static unsigned long startTime;
@@ -150,41 +146,34 @@ KeyState Keypad::getKeyState() {
 		}
 		break;
 	case PRESSED:
+	/*
 		// Waiting for a key hold...
 		if ( (millis()-Timer)>holdTime ) {
 			transitionTo(HOLD);      // Move to next state.
 			Timer = millis();    // Reset debounce timer.
 		}
 		// Or for the key to be release.
-		else if ( buttons==OPEN && (millis()-Timer)>debounceTime ) {
+		else*/ if ( buttons==OPEN && (millis()-Timer)>debounceTime ) {
 			transitionTo(RELEASED);
 			Timer = millis();
 		}
 		break;
-	case HOLD:
+/*	case HOLD:
 		// Waiting for the key to be released.
 		if ( (buttons==OPEN) && (millis()-Timer)>debounceTime ) {
 			transitionTo(RELEASED);
 			Timer = millis();
 		}
-		break;
+		break;*/
 	case RELEASED:
 		transitionTo(IDLE);
 		break;
 	}
-    return state;  			// Let the world know which state we're in.
+    return state;
 }
 
 KeyState Keypad::getState() {
 	return state;
-}
-
-void Keypad::setDebounceTime(unsigned int debounce) {
-    debounceTime = debounce;
-}
-
-void Keypad::setHoldTime(unsigned int hold) {
-    holdTime = hold;
 }
 
 void Keypad::addEventListener(void (*listener)(char)){
@@ -230,22 +219,3 @@ void Keypad::clearBuffer(){
 		keyBuffer[i] = NULL;
 	}
 }
-
-/*
-|| @changelog
-|| | 2011-12-29 - Mark Stanley : Added waitForKey()
-|| | 2011-12-23 - Mark Stanley : Rewrote state machine (Previously failed to set the IDLE state).
-|| | 2011-12-23 - Mark Stanley : Significant speed improvements and removed state machine from getKey().
-|| | 2011-11-29 - Tom Putzeys : Use internal pull-up, no  more column diodes needed, and consumes less power
-|| | 2009-07-08 - Alexander Brevig : Library does not use 2d arrays
-|| | 2009-06-15 - Alexander Brevig : Added transitionTo
-|| | 2009-06-15 - Alexander Brevig : Added getState()
-|| | 2009-06-13 - Mark Stanley : Fixed bug in getKey() that returns the wrong key if debounceTime is too short.
-|| | 2009-06-13 - Mark Stanley : Minor bug fix:  Added 'currentKey = NO_KEY' to constructors.
-|| | 2009-05-19 - Alexander Brevig : Added setHoldTime()
-|| | 2009-05-15 - Alexander Brevig : Changed begin() amd getKey(), this Library should be operational.
-|| | 2009-05-09 - Alexander Brevig : Changed getKey()
-|| | 2009-04-28 - Alexander Brevig : Modified API, and made variables private
-|| | 2007-XX-XX - Mark Stanley : Initial Release
-|| #
-*/
