@@ -90,7 +90,8 @@ boolean Keypad::scanKeys() {
 	// Assume that some other device is sharing the data pins used by the
 	// keypad. If that is the case then the pins will need to be re-intialized
 	// each time before they are used.
-	initializePins();
+//     initializePins();
+	// The assumption above is currently wrong; therefore, the initialization can be commented out safely. - CapacitorSet
 
 	// I rewrote this method to provide a status change (anyKey OPEN/CLOSED) to the
 	// getKeyState() function which handles debouncing. Now we can scan the keypad
