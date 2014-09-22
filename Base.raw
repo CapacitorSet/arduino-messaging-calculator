@@ -45,7 +45,7 @@ void ManageKey(char* toBuffer, char* toExpression, String &buffer, String &expre
 // Initialize the LCD object with the appropriate pins
 LiquidCrystal lcd(LCD_RS_PIN, LCD_ENABLE_PIN, LCD_D4_PIN, LCD_D5_PIN, LCD_D6_PIN, LCD_D7_PIN);
 // Initialize the keypad with the appropriate data
-Keypad customKeypad = Keypad(makeKeymap(keys), rowPins, colPins, KEYPAD_ROWS, KEYPAD_COLS);
+Keypad customKeypad = Keypad(makeKeymap(keys), rowPins, colPins);
 
 // Per il multitap
 char prevKey = '\0'; // The previous key
