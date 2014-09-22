@@ -40,7 +40,7 @@ void ShrunkLiquidCrystal::init(uint8_t rs, uint8_t enable,
        uint8_t d4, uint8_t d5, uint8_t d6, uint8_t d7)
 {
   _rs_pin = rs;
-  _rw_pin = rw;
+  _rw_pin = 255;
   _enable_pin = enable;
   
   _data_pins[0] = d0;
