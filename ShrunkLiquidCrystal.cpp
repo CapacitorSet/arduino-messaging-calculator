@@ -6,6 +6,8 @@
 #define LCD_D5_PIN A3     // On which pin is the LCD D5 pin?
 #define LCD_D6_PIN A4     // On which pin is the LCD D6 pin?
 #define LCD_D7_PIN A5     // On which pin is the LCD D7 pin?
+#define LCD_COLS 16       // How many columns does the LCD display have?
+#define LCD_ROWS 2        // How many rows does the LCD display have?
 
 #include <stdio.h>
 #include <string.h>
@@ -49,7 +51,7 @@ ShrunkLiquidCrystal::ShrunkLiquidCrystal() {
   
   _displayfunction = LCD_4BITMODE | LCD_1LINE | LCD_5x8DOTS;
   
-  begin(16, 1);  
+  begin(LCD_COLS, LCD_ROWS);  
 }
 
 void ShrunkLiquidCrystal::begin(uint8_t cols, uint8_t lines, uint8_t dotsize) {

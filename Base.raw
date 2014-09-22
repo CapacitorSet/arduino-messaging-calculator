@@ -66,8 +66,6 @@ void setup () {
 	#endif
 	MESSAGING_INTERFACE.begin(9600);
 
-	// Set up the LCD
-	lcd.begin(LCD_COLS, LCD_ROWS);
 	lcd.print("Tette *-*");
 
 	pinMode(SHIFT_KEY_PIN, INPUT_PULLUP); // "Keys" are pushbuttons, so they must be read using pullup resistors
