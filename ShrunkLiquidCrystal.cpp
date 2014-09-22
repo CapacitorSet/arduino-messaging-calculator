@@ -32,13 +32,7 @@
 // ShrunkLiquidCrystal constructor is called).
 
 ShrunkLiquidCrystal::ShrunkLiquidCrystal() {
-  rs = LCD_RS_PIN;
-  enable = LCD_ENABLE_PIN;
-  d0 = LCD_D4_PIN;
-  d1 = LCD_D5_PIN;
-  d2 = LCD_D6_PIN;
-  d3 = LCD_D7_PIN;
-  init(1, rs, 255, enable, d0, d1, d2, d3, 0, 0, 0, 0);
+  init(1, LCD_RS_PIN, 255, LCD_ENABLE_PIN, LCD_D4_PIN, LCD_D5_PIN, LCD_D6_PIN, LCD_D7_PIN, 0, 0, 0, 0);
 }
 
 void ShrunkLiquidCrystal::init(uint8_t fourbitmode, uint8_t rs, uint8_t rw, uint8_t enable,
