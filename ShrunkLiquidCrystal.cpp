@@ -34,9 +34,6 @@
 // ShrunkLiquidCrystal constructor is called).
 
 ShrunkLiquidCrystal::ShrunkLiquidCrystal() {
-  _rs_pin = LCD_RS_PIN;
-  _enable_pin = LCD_ENABLE_PIN;
-  
   _data_pins[0] = LCD_D4_PIN;
   _data_pins[1] = LCD_D5_PIN;
   _data_pins[2] = LCD_D6_PIN;
@@ -46,13 +43,11 @@ ShrunkLiquidCrystal::ShrunkLiquidCrystal() {
   _data_pins[6] = 0;
   _data_pins[7] = 0; 
 
-  pinMode(_rs_pin, OUTPUT);
-  pinMode(_enable_pin, OUTPUT);
+  pinMode(LCD_RS_PIN, OUTPUT);
+  pinMode(LCD_ENABLE_PIN, OUTPUT);
   
   _displayfunction = LCD_4BITMODE | LCD_2LINE | LCD_5x8DOTS;
   
-  _displayfunction |= LCD_2LINE;
-  _numlines = 2;
   _currline = 0;
 
   // SEE PAGE 45/46 FOR INITIALIZATION SPECIFICATION!
@@ -60,8 +55,8 @@ ShrunkLiquidCrystal::ShrunkLiquidCrystal() {
   // before sending commands. Arduino can turn on way before 4.5V so we'll wait 50
   delayMicroseconds(50000); 
   // Now we pull both RS and R/W low to begin commands
-  digitalWrite(_rs_pin, LOW);
-  digitalWrite(_enable_pin, LOW);
+  digitalWrite(LCD_RS_PIN, LOW);
+  digitalWrite(LCD_ENABLE_PIN, LOW);
   
   //put the LCD into 4 bit or 8 bit mode
   if (! (_displayfunction & LCD_8BITMODE)) {
@@ -131,8 +126,8 @@ void ShrunkLiquidCrystal::home()
 void ShrunkLiquidCrystal::setCursor(uint8_t col, uint8_t row)
 {
   int row_offsets[] = { 0x00, 0x40, 0x14, 0x54 };
-  if ( row >= _numlines ) {
-    row = _numlines-1;    // we count rows starting w/0
+  if ( row >= LCD_ROWS ) {
+    row = LCD_ROWS-1;    // we count rows starting w/0
   }
   
   command(LCD_SETDDRAMADDR | (col + row_offsets[row]));
@@ -231,7 +226,7 @@ inline size_t ShrunkLiquidCrystal::write(uint8_t value) {
 
 // write either command or data, with automatic 4/8-bit selection
 void ShrunkLiquidCrystal::send(uint8_t value, uint8_t mode) {
-  digitalWrite(_rs_pin, mode);
+  digitalWrite(LCD_RS_PIN, mode);
   
   if (_displayfunction & LCD_8BITMODE) {
     write8bits(value); 
@@ -242,11 +237,11 @@ void ShrunkLiquidCrystal::send(uint8_t value, uint8_t mode) {
 }
 
 void ShrunkLiquidCrystal::pulseEnable(void) {
-  digitalWrite(_enable_pin, LOW);
+  digitalWrite(LCD_ENABLE_PIN, LOW);
   delayMicroseconds(1);    
-  digitalWrite(_enable_pin, HIGH);
+  digitalWrite(LCD_ENABLE_PIN, HIGH);
   delayMicroseconds(1);    // enable pulse must be >450ns
-  digitalWrite(_enable_pin, LOW);
+  digitalWrite(LCD_ENABLE_PIN, LOW);
   delayMicroseconds(100);   // commands need > 37us to settle
 }
 
