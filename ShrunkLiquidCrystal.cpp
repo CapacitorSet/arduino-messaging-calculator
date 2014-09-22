@@ -49,12 +49,8 @@ ShrunkLiquidCrystal::ShrunkLiquidCrystal() {
   pinMode(_rs_pin, OUTPUT);
   pinMode(_enable_pin, OUTPUT);
   
-  _displayfunction = LCD_4BITMODE | LCD_1LINE | LCD_5x8DOTS;
+  _displayfunction = LCD_4BITMODE | LCD_2LINE | LCD_5x8DOTS;
   
-  begin(LCD_COLS, LCD_ROWS);
-}
-
-void ShrunkLiquidCrystal::begin(uint8_t cols, uint8_t lines, uint8_t dotsize) {
   _displayfunction |= LCD_2LINE;
   _numlines = 2;
   _currline = 0;
@@ -142,11 +138,13 @@ void ShrunkLiquidCrystal::setCursor(uint8_t col, uint8_t row)
   command(LCD_SETDDRAMADDR | (col + row_offsets[row]));
 }
 
+/*
 // Turn the display on/off (quickly)
 void ShrunkLiquidCrystal::noDisplay() {
   _displaycontrol &= ~LCD_DISPLAYON;
   command(LCD_DISPLAYCONTROL | _displaycontrol);
 }
+*/
 void ShrunkLiquidCrystal::display() {
   _displaycontrol |= LCD_DISPLAYON;
   command(LCD_DISPLAYCONTROL | _displaycontrol);
@@ -162,6 +160,7 @@ void ShrunkLiquidCrystal::cursor() {
   command(LCD_DISPLAYCONTROL | _displaycontrol);
 }
 
+/*
 // Turn on and off the blinking cursor
 void ShrunkLiquidCrystal::noBlink() {
   _displaycontrol &= ~LCD_BLINKON;
@@ -171,6 +170,7 @@ void ShrunkLiquidCrystal::blink() {
   _displaycontrol |= LCD_BLINKON;
   command(LCD_DISPLAYCONTROL | _displaycontrol);
 }
+*/
 
 // These commands scroll the display without changing the RAM
 void ShrunkLiquidCrystal::scrollDisplayLeft(void) {
@@ -192,6 +192,7 @@ void ShrunkLiquidCrystal::rightToLeft(void) {
   command(LCD_ENTRYMODESET | _displaymode);
 }
 
+/*
 // This will 'right justify' text from the cursor
 void ShrunkLiquidCrystal::autoscroll(void) {
   _displaymode |= LCD_ENTRYSHIFTINCREMENT;
@@ -203,6 +204,7 @@ void ShrunkLiquidCrystal::noAutoscroll(void) {
   _displaymode &= ~LCD_ENTRYSHIFTINCREMENT;
   command(LCD_ENTRYMODESET | _displaymode);
 }
+*/
 
 // Allows us to fill the first 8 CGRAM locations
 // with custom characters
