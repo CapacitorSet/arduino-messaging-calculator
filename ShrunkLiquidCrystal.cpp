@@ -58,8 +58,10 @@ ShrunkLiquidCrystal::ShrunkLiquidCrystal() {
   digitalWrite(LCD_RS_PIN, LOW);
   digitalWrite(LCD_ENABLE_PIN, LOW);
   
-  //put the LCD into 4 bit or 8 bit mode
+/*  //put the LCD into 4 bit or 8 bit mode
   if (! (_displayfunction & LCD_8BITMODE)) {
+  // It appears that this is the branch that gets executed. I'll just leave the other one commented out for safety. */
+    Serial.print("1");
     // this is according to the hitachi HD44780 datasheet
     // figure 24, pg 46
 
@@ -77,7 +79,8 @@ ShrunkLiquidCrystal::ShrunkLiquidCrystal() {
 
     // finally, set to 4-bit interface
     write4bits(0x02); 
-  } else {
+/*  } else {
+    Serial.print("2");
     // this is according to the hitachi HD44780 datasheet
     // page 45 figure 23
 
@@ -91,7 +94,7 @@ ShrunkLiquidCrystal::ShrunkLiquidCrystal() {
 
     // third go
     command(LCD_FUNCTIONSET | _displayfunction);
-  }
+  }*/
 
   // finally, set # lines, font size, etc.
   command(LCD_FUNCTIONSET | _displayfunction);  
