@@ -1,5 +1,12 @@
 #include "ShrunkLiquidCrystal.h"
 
+#define LCD_RS_PIN A0     // On which pin is the LCD RS pin?
+#define LCD_ENABLE_PIN A1 // On which pin is the LCD Enable pin?
+#define LCD_D4_PIN A2     // On which pin is the LCD D4 pin?
+#define LCD_D5_PIN A3     // On which pin is the LCD D5 pin?
+#define LCD_D6_PIN A4     // On which pin is the LCD D6 pin?
+#define LCD_D7_PIN A5     // On which pin is the LCD D7 pin?
+
 #include <stdio.h>
 #include <string.h>
 #include <inttypes.h>
@@ -24,9 +31,13 @@
 // can't assume that its in that state when a sketch starts (and the
 // ShrunkLiquidCrystal constructor is called).
 
-ShrunkLiquidCrystal::ShrunkLiquidCrystal(uint8_t rs,  uint8_t enable,
-           uint8_t d0, uint8_t d1, uint8_t d2, uint8_t d3)
-{
+ShrunkLiquidCrystal::ShrunkLiquidCrystal() {
+  rs = LCD_RS_PIN;
+  enable = LCD_ENABLE_PIN;
+  d0 = LCD_D4_PIN;
+  d1 = LCD_D5_PIN;
+  d2 = LCD_D6_PIN;
+  d3 = LCD_D7_PIN;
   init(1, rs, 255, enable, d0, d1, d2, d3, 0, 0, 0, 0);
 }
 
