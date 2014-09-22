@@ -8,12 +8,6 @@
 #define CTRL_KEY_PIN 3    // On which pin is the Ctrl key?
 #define LCD_COLS 16       // How many columns does the LCD display have?
 #define LCD_ROWS 2        // How many rows does the LCD display have?
-#define LCD_RS_PIN A0     // On which pin is the LCD RS pin?
-#define LCD_ENABLE_PIN A1 // On which pin is the LCD Enable pin?
-#define LCD_D4_PIN A2     // On which pin is the LCD D4 pin?
-#define LCD_D5_PIN A3     // On which pin is the LCD D5 pin?
-#define LCD_D6_PIN A4     // On which pin is the LCD D6 pin?
-#define LCD_D7_PIN A5     // On which pin is the LCD D7 pin?
 #define KEYPAD_ROWS 4
 #define KEYPAD_COLS 4
 char keys[KEYPAD_ROWS][KEYPAD_COLS] = {
@@ -31,7 +25,7 @@ byte colPins[KEYPAD_COLS] = { 8,  7,  6, 5};
 #include "infix_postfix.h"
 #include "evaluate_postfix.h"
 #include "conversion_tools.h"
-#include <LiquidCrystal.h>
+#include "ShrunkLiquidCrystal.h"
 #include "Keypad.h"
 #include "QueueArray.h"
 #include <EEPROM.h>
@@ -43,7 +37,7 @@ void ManageKey(char* toBuffer, char* toExpression, String &buffer, String &expre
 }
 
 // Initialize the LCD object with the appropriate pins
-LiquidCrystal lcd(LCD_RS_PIN, LCD_ENABLE_PIN, LCD_D4_PIN, LCD_D5_PIN, LCD_D6_PIN, LCD_D7_PIN);
+ShrunkLiquidCrystal lcd;
 // Initialize the keypad with the appropriate data
 Keypad customKeypad = Keypad(makeKeymap(keys), rowPins, colPins);
 
