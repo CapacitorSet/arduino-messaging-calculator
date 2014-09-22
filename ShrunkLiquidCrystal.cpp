@@ -51,20 +51,13 @@ ShrunkLiquidCrystal::ShrunkLiquidCrystal() {
   
   _displayfunction = LCD_4BITMODE | LCD_1LINE | LCD_5x8DOTS;
   
-  begin(LCD_COLS, LCD_ROWS);  
+  begin(LCD_COLS, LCD_ROWS);
 }
 
 void ShrunkLiquidCrystal::begin(uint8_t cols, uint8_t lines, uint8_t dotsize) {
-  if (lines > 1) {
-    _displayfunction |= LCD_2LINE;
-  }
-  _numlines = lines;
+  _displayfunction |= LCD_2LINE;
+  _numlines = 2;
   _currline = 0;
-
-  // for some 1 line displays you can select a 10 pixel high font
-  if ((dotsize != 0) && (lines == 1)) {
-    _displayfunction |= LCD_5x10DOTS;
-  }
 
   // SEE PAGE 45/46 FOR INITIALIZATION SPECIFICATION!
   // according to datasheet, we need at least 40ms after power rises above 2.7V
