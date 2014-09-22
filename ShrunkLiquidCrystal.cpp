@@ -40,7 +40,6 @@ void ShrunkLiquidCrystal::init(uint8_t rs, uint8_t enable,
        uint8_t d4, uint8_t d5, uint8_t d6, uint8_t d7)
 {
   _rs_pin = rs;
-  _rw_pin = 255;
   _enable_pin = enable;
   
   _data_pins[0] = d0;
@@ -79,9 +78,6 @@ void ShrunkLiquidCrystal::begin(uint8_t cols, uint8_t lines, uint8_t dotsize) {
   // Now we pull both RS and R/W low to begin commands
   digitalWrite(_rs_pin, LOW);
   digitalWrite(_enable_pin, LOW);
-  if (_rw_pin != 255) { 
-    digitalWrite(_rw_pin, LOW);
-  }
   
   //put the LCD into 4 bit or 8 bit mode
   if (! (_displayfunction & LCD_8BITMODE)) {
@@ -246,11 +242,6 @@ inline size_t ShrunkLiquidCrystal::write(uint8_t value) {
 // write either command or data, with automatic 4/8-bit selection
 void ShrunkLiquidCrystal::send(uint8_t value, uint8_t mode) {
   digitalWrite(_rs_pin, mode);
-
-  // if there is a RW pin indicated, set it low to Write
-  if (_rw_pin != 255) { 
-    digitalWrite(_rw_pin, LOW);
-  }
   
   if (_displayfunction & LCD_8BITMODE) {
     write8bits(value); 
