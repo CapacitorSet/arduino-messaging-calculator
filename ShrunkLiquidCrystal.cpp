@@ -32,10 +32,10 @@
 // ShrunkLiquidCrystal constructor is called).
 
 ShrunkLiquidCrystal::ShrunkLiquidCrystal() {
-  init(1, LCD_RS_PIN, 255, LCD_ENABLE_PIN, LCD_D4_PIN, LCD_D5_PIN, LCD_D6_PIN, LCD_D7_PIN, 0, 0, 0, 0);
+  init(LCD_RS_PIN, LCD_ENABLE_PIN, LCD_D4_PIN, LCD_D5_PIN, LCD_D6_PIN, LCD_D7_PIN, 0, 0, 0, 0);
 }
 
-void ShrunkLiquidCrystal::init(uint8_t fourbitmode, uint8_t rs, uint8_t rw, uint8_t enable,
+void ShrunkLiquidCrystal::init(uint8_t rs, uint8_t enable,
        uint8_t d0, uint8_t d1, uint8_t d2, uint8_t d3,
        uint8_t d4, uint8_t d5, uint8_t d6, uint8_t d7)
 {
@@ -53,16 +53,9 @@ void ShrunkLiquidCrystal::init(uint8_t fourbitmode, uint8_t rs, uint8_t rw, uint
   _data_pins[7] = d7; 
 
   pinMode(_rs_pin, OUTPUT);
-  // we can save 1 pin by not using RW. Indicate by passing 255 instead of pin#
-  if (_rw_pin != 255) { 
-    pinMode(_rw_pin, OUTPUT);
-  }
   pinMode(_enable_pin, OUTPUT);
   
-  if (fourbitmode)
-    _displayfunction = LCD_4BITMODE | LCD_1LINE | LCD_5x8DOTS;
-  else 
-    _displayfunction = LCD_8BITMODE | LCD_1LINE | LCD_5x8DOTS;
+  _displayfunction = LCD_4BITMODE | LCD_1LINE | LCD_5x8DOTS;
   
   begin(16, 1);  
 }
