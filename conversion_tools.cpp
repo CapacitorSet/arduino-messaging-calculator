@@ -107,11 +107,6 @@ double_string (char *string, double value, int places, int width) {
     temp_double = temp_double - (double) digit;
   }
 
-  // add extra space to justify it left.
-  if (extra > 0)
-    for (int i = 0; i < extra; i++)
-      string[c++] = ' ';
-
   // terminate the string.
   string[c++] = '\0';
 
