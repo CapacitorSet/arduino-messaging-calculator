@@ -216,7 +216,10 @@ void loop () {
 						const int realAddress = getFirstPositionOfBlock(memoryAddress.toInt());
 						lcd.setCursor(0, 0);
 						for (int i = 0; i < 64; i++) {
-							lcd.write(EEPROM.read(realAddress + i));
+							char carattere = EEPROM.read(realAddress + i);
+							if (carattere != '\0') {
+								lcd.write(EEPROM.read(realAddress + i));
+							}
 						}
 					}  else {
 						lcd.setCursor(0, 0);
