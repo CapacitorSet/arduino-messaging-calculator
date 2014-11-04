@@ -22,30 +22,6 @@
  *
  *  ---
  *
- *  Version 1.0
- *
- *    2014-02-03  Brian Fletcher  <brian.jf.fletcher@gmail.com>
- *
- *      - added enqueue(), dequeue() and front().
- *
- *    2010-09-29  Efstathios Chatzikyriakidis  <contact@efxa.org>
- *
- *      - added resize(): for growing, shrinking the array size.
- *
- *    2010-09-25  Efstathios Chatzikyriakidis  <contact@efxa.org>
- *
- *      - added exit(), blink(): error reporting and handling methods.
- *
- *    2010-09-24  Alexander Brevig  <alexanderbrevig@gmail.com>
- *
- *      - added setPrinter(): indirectly reference a Serial object.
- *
- *    2010-09-20  Efstathios Chatzikyriakidis  <contact@efxa.org>
- *
- *      - initial release of the library.
- *
- *  ---
- *
  *  For the latest version see: http://www.arduino.cc/
  */
 

@@ -22,22 +22,6 @@
  *
  *  ---
  *
- *  Version 1.0
- *
- *    2010-09-23  Efstathios Chatzikyriakidis  <contact@efxa.org>
- *
- *      - added exit(), blink(): error reporting and handling methods.
- *
- *    2010-09-20  Alexander Brevig  <alexanderbrevig@gmail.com>
- *
- *      - added setPrinter(): indirectly reference a Serial object.
- *
- *    2010-09-15  Efstathios Chatzikyriakidis  <contact@efxa.org>
- *
- *      - initial release of the library.
- *
- *  ---
- *
  *  For the latest version see: http://www.arduino.cc/
  */
 
