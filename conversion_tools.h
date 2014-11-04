@@ -27,8 +27,8 @@
 // produce a formatted string in a buffer corresponding to the double value provided.
 char *double_string (char *string,
                      double value,
-                     int places = 5,
-                     int width = 0);
+                     unsigned int places = 5,
+                     unsigned int width = 0);
                      
 char *int_string (char *string,
                      int value);

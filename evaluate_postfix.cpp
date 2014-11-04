@@ -64,10 +64,6 @@ void subtract(double numeratore1, int divisore1, double numeratore2, int divisor
 }
 
 void divide(double numeratore1, int divisore1, double numeratore2, int divisore2, StackList<double> &numeratori, StackList<int> &divisori) {
-  if (numeratore1 == 0) {
-    Serial.print("div0");
-    return;
-  }
   if (fmod(numeratore1, 1) != 0) { // If the first arg is a double
     numeratore2 = numeratore2 / divisore2;
               // Casts the second item to a double (no need to convert args_divisore[1])
@@ -176,6 +172,12 @@ evaluate_postfix (String & postfix, double &numeratore, int &divisore) {
             break;
 
           case '/':
+            if (args_numeratore[0] == 0) {
+              #if DEBUG
+                Serial.println("div0");
+              #endif
+              return false;
+            }
             divide(args_numeratore[1], args_divisore[1], args_numeratore[0], args_divisore[0], numeratori, divisori);
             break;
 

@@ -22,28 +22,22 @@
 
 // produce a formatted string in a buffer corresponding to the double value provided.
 char *
-double_string (char *string, double value, int places, int width) {
+double_string (char *string, double value, unsigned int places, unsigned int width) {
   // variables used for the conversion.
   double tens = 0.1, temp_double = value;
-  int digit, tens_count = 0, c = 0;
-  int i, char_count = 1, extra = 0;
-
-  // defensive issue.
-  if (width < 0)
-    width = 0;
+  unsigned int digit, tens_count = 0, c = 0;
+  unsigned int i;
 
   // defensive issue.
   if (places > 8)
     places = 8;
-  else if (places < 0)
-    places = 0;
 
   // make sure we round properly.
 
   // calculate rounding term d: 0.5 / pow (10, places).  
   double d = 0.5;
   if (value < 0)
-    d *= -1.0;
+    d = -d;
 
   // divide by ten for each decimal place.
   for (i = 0; i < places; i++)
@@ -54,29 +48,16 @@ double_string (char *string, double value, int places, int width) {
 
   // first get value tens to be the large power of ten less than value.
   if (value < 0)
-    temp_double *= -1.0;
+    temp_double = -temp_double;
 
   while ((tens * 10.0) <= temp_double) {
     tens *= 10.0;
     tens_count += 1;
   }
 
-  if (tens_count > 0)
-    char_count += tens_count;
-  else
-    char_count += 1;
-
-  if (value < 0)
-    char_count += 1;
-
-  char_count += 1 + places;
 
   // both count the null final character.
   width += 1;
-  if (width > char_count) {
-    extra = width - char_count;
-    char_count = width;
-  }
 
   // write out the negative if needed.
   if (value < 0)
