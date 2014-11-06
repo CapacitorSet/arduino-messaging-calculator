@@ -161,7 +161,8 @@ void loop () {
 					lcd.setCursor(0, 1);
 					lcd.write("                "); // Sedici spazi, in modo da clearare la riga sotto
 					lcd.setCursor(0, 1); // E torna all'inizio
-					lcd.write(int_string(messageCount, nuoviMessaggi));
+					itoa(nuoviMessaggi, messageCount, 10);
+					lcd.write(nuoviMessaggi);
 					lcd.write(" nuovi messaggi");
 				}
 				break;
@@ -316,7 +317,7 @@ void loop () {
 							if (divisore != 1) {
 								lcd.print('/');
 								// castalo a string prima di printarlo
-								int_string(value, divisore);
+								itoa(divisore, value, 10);
 								lcd.print(value);
 							}
 						} else

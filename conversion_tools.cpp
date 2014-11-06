@@ -94,8 +94,3 @@ double_string (char *string, double value, unsigned int places, unsigned int wid
   // return the string.
   return string;
 }
-
-char* int_string(char* string, int value) {
-  itoa(value, string, 10);
-  return string;
-}
