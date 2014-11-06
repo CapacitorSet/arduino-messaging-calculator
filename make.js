@@ -9,43 +9,25 @@ replacement = "\n";
 
 for (key in keys) {
 	data = keys[key]
-	replacement += "case " + quote(key) + ":\n";
-	if (data.ctrlShift) {
-		replacement += "\tif (ctrl && shift) {\n"
-		replacement += setVars(data.ctrlShift);
-		replacement += "\t} else\n";
-	}
-	if (data.ctrl) {
-		replacement += "\tif (ctrl && !shift) {\n"
-		replacement += setVars(data.ctrl);
-		replacement += "\t} else\n";
-	}
-	if (data.shift) {
-		replacement += "\tif (!ctrl && shift) {\n"
-		replacement += setVars(data.shift);
-		replacement += "\t} else\n";
-	}
-	replacement += "\tif (!ctrl && !shift) {\n"
-	replacement += "\t\tif (textMode) {\n";
-	textModeChoices = data.textMode.length;
-	replacement += "\t\t\ttapCount = tapCount % " + textModeChoices + ";\n";
-	replacement += "\t\t\tswitch (tapCount) {\n"
+	replacement       = fs.readFileSync("Key.cpptemplate").toString("utf8");
+	tapCount_template = fs.readFileSync("TapCount.cpptemplate").toString("utf8");
+
+	HandleTapCount = "";
 	tapCount = 0;
 	data.textMode.forEach(function (key) {
-		replacement += "\t\t\t\tcase " + tapCount + ":\n";
-		item = {"toBuffer": key, "toExpression": key};
-		replacement += "\t\t\t" + setVars(item);
-		replacement += "\t\t\t\t\tbreak;\n"
+		HandleTapCount += tapCount_template.replace("$TapCount", tapCount).replace("$CurrentTap", setVars({"toBuffer": key, "toExpression": key}));
 		tapCount++;
 	});
-	replacement += "\t\t\t}\n";
-	replacement += "\t\t} else {\n";
-	replacement += "\t" + setVars(data.vanilla);
-	replacement += "\t\t}\n";
-	replacement += "\tManageKey(toBuffer, toExpression, buffer, expression, latestExpressionLength);\n";
-	replacement += "\t}\n";
 
-	replacement += "\tbreak;\n"
+	replacement = substituteVars(replacement, {
+		"case": quote(key),
+		"CtrlShift": setVars(data.ctrlShift),
+		"CtrlNoshift": setVars(data.ctrl),
+		"NoctrlShift": setVars(data.shift),
+		"TapCount": data.textMode.length,
+		"HandleTapCount": HandleTapCount,
+		"Vanilla": setVars(data.vanilla)
+	});
 }
 
 function quote(text) {
@@ -58,10 +40,20 @@ function quote(text) {
 }
 
 function setVars(data) {
-	if (typeof data.toExpression == 'undefined') data.toExpression = data.toBuffer;
-	returnVal = '\t\tstrcpy(toBuffer, "' + data.toBuffer     + '");\n'
-	returnVal+= '\t\tstrcpy(toExpression, "' + data.toExpression + '");\n'
-	return returnVal;	
+	if (typeof data !== 'undefined') {
+		if (typeof data.toExpression == 'undefined') data.toExpression = data.toBuffer;
+		returnVal = '\t\tstrcpy(toBuffer, "' + data.toBuffer     + '");strcpy(toExpression, "' + data.toExpression + '");\n'
+		return returnVal;	
+	} else {
+		return "";
+	}
+}
+
+function substituteVars(template, data) {
+	for (item in data) {
+		template = template.replace("$" + item, data[item]);
+	}
+	return template;
 }
 
 originalProgram = originalProgram.replace("/* KEYS */", replacement);

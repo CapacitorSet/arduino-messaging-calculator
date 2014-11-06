@@ -1,0 +1,21 @@
+case $case:
+	if (ctrl && shift) {
+		$CtrlShift
+	} else
+	if (ctrl && !shift) {
+		$CtrlNoshift
+	} else
+	if (!ctrl && shift) {
+		$NoctrlShift
+	} else {
+		if (textMode) {
+			tapCount %= $TapCount;
+			switch (tapCount) {
+				$HandleTapCount
+			}
+		} else {
+			$Vanilla
+		}
+	}
+	ManageKey(toBuffer, toExpression, buffer, expression, latestExpressionLength);
+	break;

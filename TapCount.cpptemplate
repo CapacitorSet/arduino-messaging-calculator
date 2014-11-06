@@ -1,0 +1,3 @@
+case $TapCount:
+	$CurrentTap;
+	break;
