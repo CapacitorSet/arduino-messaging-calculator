@@ -30,35 +30,31 @@ byte colPins[KEYPAD_COLS] = { 8,  7,  6, 5};
 #include "QueueArray.h"
 #include <EEPROM.h>
 
-void ManageKey(String toBuffer, String toExpression, String &buffer, String &expression, int &latestExpressionLength) {
-	buffer     += toBuffer;
-	expression += toExpression;
-	latestExpressionLength = 1;
-}
-
 // Initialize the LCD object with the appropriate pins
 ShrunkLiquidCrystal lcd;
 // Initialize the keypad with the appropriate data
 Keypad customKeypad = Keypad(makeKeymap(keys), rowPins, colPins);
 
-// Per il multitap
-char prevKey = '\0'; // The previous key
-int tapCount = 0; // The number of consecutive taps so far
+/* Multitap stuff */
+char prevKey = '\0';    // The previous key
+int tapCount = 0;       // The number of consecutive taps so far
 unsigned long time = 0; // The timestamp of the latest tap
 
-// Per scrivere
-String buffer; // Contiene l'espressione letta dal parser
-String expression; // Contiene il testo mostrato sull'LCD
-bool textMode = false; // Indica se la text mode è attiva o no
-int latestExpressionLength; // So that backspace works correctly with eg. log or tan
+/* Writing stuff */
+String buffer;                       // Contiene l'espressione letta dal parser
+String expression;                   // Contiene il testo mostrato sull'LCD
+bool textMode = false;               // Indica se la text mode è attiva o no
+unsigned int latestExpressionLength; // So that backspace works correctly with multi-character items like "log" or "tan"
 /* TODO: fix the line above (turn it into a LIFO stack) */
-QueueArray <char> messaggi, emptyQueue; // Rispettivamente, la coda dei messaggi e una coda vuota
-int nuoviMessaggi = 0; // Il numero di messaggi non letti
+QueueArray <char> messaggi;          // La coda dei messaggi ricevuti
+QueueArray <char> emptyQueue;        // Una coda vuota, usata per azzerare la coda dei messaggi
+unsigned int nuoviMessaggi = 0;      // Il numero di messaggi non letti
 
 bool waitingForMemoryAddress = false; // Si sta aspettando un indirizzo dall'utente?
-bool waitingForData = false; // Si sta aspettando dei dati (da scrivere in EEPROM)?
-String memoryAddress; // Stores the memory address between loop() calls
+bool waitingForData = false;          // Si sta aspettando dei dati (da scrivere in EEPROM)?
+String memoryAddress;                 // Stores the memory address between loop() calls
 
+/* Setup the serial interfaces and the pushbutton pins */
 void setup () {
 	#if DEBUG
 		// Enable the Serial interface for sending debug messages
@@ -66,22 +62,28 @@ void setup () {
 	#endif
 	MESSAGING_INTERFACE.begin(9600);
 
-	lcd.print("Tette *-*");
+	lcd.print("Tette *-*"); // lol
 
 	pinMode(SHIFT_KEY_PIN, INPUT_PULLUP); // "Keys" are pushbuttons, so they must be read using pullup resistors
 	pinMode(CTRL_KEY_PIN, INPUT_PULLUP);
 }
 
-void printExpr(String expression) {
-	/* Appropriately prints an expression to the LCD display */
+/* Deal with the buffer and the expression [todo: that expression-length-as-stack stuff] */
+void ManageKey(String toBuffer, String toExpression, String &buffer, String &expression, unsigned int &latestExpressionLength) {
+	buffer     += toBuffer;
+	expression += toExpression;
+	latestExpressionLength = 1;
+}
 
+/* Appropriately print an expression to the LCD display (deals with autoscroll and stuff) */
+void printExpr(String expression) {
 	#if DEBUG
 		Serial.print("Printing ");
 		Serial.println(expression);
 	#endif
 
-
 	lcd.print(expression);
+
     if(expression.length() > LCD_COLS - 1) { // If the text is longer than the whole screen
 		#if DEBUG
 			Serial.println("Autoscrolling");
@@ -92,6 +94,7 @@ void printExpr(String expression) {
 	}
 }
 
+/* Get the first address of the Nth block */
 int getFirstPositionOfBlock(int block) {
 	const int realAddress = 64 * (block - 1);
 	/*
@@ -104,9 +107,8 @@ int getFirstPositionOfBlock(int block) {
 	return realAddress;
 }
 
+/* Send a message on the messaging interface */
 void send(String message) {
-	/* Sends a message on the messaging interface */
-
 	MESSAGING_INTERFACE.print(message); // Don't you dare simplify this to .println! .println uses \r\n as a line terminator, whereas this programme uses \n.
 	MESSAGING_INTERFACE.print('\n');
 	#if DEBUG
@@ -122,32 +124,40 @@ void loop () {
 	char toBuffer[5], toExpression[10];
 
 	if (key) {
-		const bool shift = !digitalRead(SHIFT_KEY_PIN); // It's negated because, well, that's how it's meant to be done.
-		const bool ctrl  = !digitalRead(CTRL_KEY_PIN);  // The alternative would be using pulldown resistors, but there is no such thing on an Arduino, which means an external component would be required. Ew.
+		// La lettura e' negata perche' i pin con i pullup sono attivi bassi.
+		const bool shift = !digitalRead(SHIFT_KEY_PIN);
+		const bool ctrl  = !digitalRead(CTRL_KEY_PIN);
 
-		// Multitap management
+		/* Multitap management */
 		if (textMode == true) {
-			if (key == prevKey && (millis() - time) < 1000) { // If the last tap was <1 second ago
-					// Remove the last element inserted in the buffer and in the expression
+			// If the last tap was <1 second ago
+			if (key == prevKey && (millis() - time) < 1000) {
+					// Register a new tap
 					tapCount++;
+					// Remove the last element inserted in the buffer
 					buffer = buffer.substring(0, buffer.length() - 1);
+					// and in the expression
 					expression = expression.substring(0, expression.length() - latestExpressionLength);
-			}
-			else {
+			} else { // If the last tap was too long ago
+				// Consider the current tap as a "new" one
 				tapCount = 0;
 				prevKey = '\0';
 			}
 			time = millis(); // Record the time of this tap for future reference
 		}
 
-		// Custom keypress behaviour
+		/* Custom keypress behaviour */
 		switch (key) {
 			case '0':
-				if (textMode && shift && !ctrl) { // Shift+0 in text mode displays the message count
+				/* Shift+0 in text mode
+				 *
+				 * Displays the message count
+				 */
+				if (textMode && shift && !ctrl) {
 					printExpression = false;
 					clearScreen = false;
-					char messageCount[4]; // Allocate 4 characters for the message count (0...9999)
-
+					// Allocate 4 characters for the message count (0...9999)
+					char messageCount[4]; 
 					lcd.setCursor(0, 1);
 					lcd.write("                "); // Sedici spazi, in modo da clearare la riga sotto
 					lcd.setCursor(0, 1); // E torna all'inizio
@@ -156,7 +166,11 @@ void loop () {
 				}
 				break;
 			case '5':
-				if (shift && ctrl) { // Shift+Ctrl+5 toggles text mode, no matter the current mode
+				/* Shift+Ctrl+5
+				 *
+				 * Toggles text mode
+				 */
+				if (shift && ctrl) {
 					printExpression = false;
 					clearScreen = false;
 					textMode = !textMode;
@@ -166,17 +180,27 @@ void loop () {
 				}
 				break;
 			case 'S':
-				if (shift && ctrl) { // Shift+Ctrl+S scrolls the display to the right, no matter the current mode.
+				/* Shift+Ctrl+S
+				 *
+				 * Scrolls the display to the right
+				 */
+				if (shift && ctrl) {
 					printExpression = false;
 					clearScreen = false;
 					lcd.scrollDisplayRight(); // That's *right*, it's not a typo. This is what the users perceive as "natural" scrolling.
-				} else if (shift && !ctrl) { // Shift+S writes to the EEPROM, no matter the current mode
+				} else
+				/* Shift+S
+				 * 
+				 * Writes to the EEPROM
+				 */
+				if (shift && !ctrl) {
 					printExpression = false;
 					clearScreen = false;
 
 					// Note that the first case that will be executed is the else case
 
-					if (waitingForMemoryAddress == true) { // If we're expecting an address
+					// If we're expecting an address
+					if (waitingForMemoryAddress == true) { 
 						waitingForMemoryAddress = false;
 						waitingForData = true;
 						memoryAddress = buffer; // Holds the user input between calls to loop()
@@ -184,7 +208,9 @@ void loop () {
 						expression = "";
 						lcd.setCursor(0, 0);
 						lcd.write("Contenuto?");
-					} else if (waitingForData == true) { // If we're expecting data
+					} else
+					// If we're expecting data
+					if (waitingForData == true) {
 						waitingForData = false;
 						const int realAddress = getFirstPositionOfBlock(memoryAddress.toInt());
 						for (int i = 0; i < 64; i++) {
@@ -195,20 +221,28 @@ void loop () {
 						lcd.setCursor(0,0);
 						lcd.print("Scritto in ");
 						lcd.print(memoryAddress);
-					}  else {
+					} else
+					// If the key has just been pressed
+					{
 						lcd.setCursor(0, 0);
 						lcd.write("Posizione?");
 						buffer = "";
 						expression = "";
 						waitingForMemoryAddress = true;
 					}
-				} else if (!shift && ctrl) { // Ctrl+S reads the EEPROM, no matter the current mode
+				} else
+				/* Ctrl+S
+				 *
+				 * Reads the EEPROM.
+				 */
+				if (!shift && ctrl) {
 					printExpression = false;
 					clearScreen = false;
 
 					// Note that the first case to be executed is the else case
 
-					if (waitingForMemoryAddress == true) { // If we're expecting a memory address
+					// If we're expecting a memory address
+					if (waitingForMemoryAddress == true) {
 						waitingForMemoryAddress = false;
 						waitingForData = true;
 						memoryAddress = buffer;
@@ -222,14 +256,21 @@ void loop () {
 								lcd.write(EEPROM.read(realAddress + i));
 							}
 						}
-					}  else {
+					} else
+					// If the key has just been pressed
+					{
 						lcd.setCursor(0, 0);
 						lcd.write("Posizione?");
 						buffer = "";
 						expression = "";
 						waitingForMemoryAddress = true;
 					}
-				} else if (!shift && !ctrl && textMode) { // In text mode, S sends a message
+				} else
+				/* S [Text Mode]
+				 *
+				 * Sends a message.
+				 */
+				if (!shift && !ctrl && textMode) {
 					printExpression = false;
 					clearScreen = false;
 					send(buffer);
@@ -237,7 +278,12 @@ void loop () {
 					expression = "";
 					lcd.setCursor(0, 1);
 					lcd.write("Inviato!");
-				} else if (!shift && !ctrl && !textMode) { // Outside of text mode, S evaluates the current expression
+				} else
+				/* S
+				 *
+				 * Evaluates the current expression.
+				 */
+				if (!shift && !ctrl && !textMode) {
 					printExpression = false;
 					clearScreen = false;
 
@@ -253,7 +299,8 @@ void loop () {
 						Serial.println(buffer);
 					#endif
 					
-					if (infix_postfix (buffer, postfix)) { // try to convert the infix expression to postfix
+					// try to convert the infix expression to postfix
+					if (infix_postfix (buffer, postfix)) {
 						#if DEBUG
 							Serial.print("Postfix: ");
 							Serial.println(postfix);
@@ -265,15 +312,21 @@ void loop () {
 							double_string (value, numeratore, RESULT_PRECISION);
 
 							lcd.print(value);
-							if (divisore != 1) { // se c'è un divisore
+							// se c'e' un divisore
+							if (divisore != 1) {
 								lcd.print('/');
-								int_string(value, divisore); // castalo a string prima di printarlo
+								// castalo a string prima di printarlo
+								int_string(value, divisore);
 								lcd.print(value);
 							}
-						} else {
+						} else
+						// if the postfix expression couldn't be evaluated
+						{
 							lcd.write("Can'tEvalPostfix");
 						}
-					} else {
+					} else
+					// If the infix expression could not be converted to postfix
+					{
 						lcd.write("CantConvert2Infx");
 					}
 					buffer     = "";
@@ -281,11 +334,20 @@ void loop () {
 				}
 				break;
 			case 'D':
-				if (shift && ctrl) { // Shift+Ctrl+D scrolls the display left, no matter the current mode
+				/* Shift+Ctrl+D
+				 *
+				 * Scrolls the display to the left.
+				 */
+				if (shift && ctrl) {
 					printExpression = false;
 					clearScreen = false;
 					lcd.scrollDisplayLeft(); // See the comment on Shift+Ctrl+S
-				} else if (textMode && shift && !ctrl) { // Shift+D in text mode shows the earliest unread message and removes it from memory
+				} else
+				/* Shift+D [Text Mode]
+				 *
+				 * Shows the earliest unread message and pops it from the queue
+				 */
+				if (textMode && shift && !ctrl) {
 					printExpression = false;
 					clearScreen = false;
 
@@ -327,19 +389,24 @@ void loop () {
 		prevKey = key;
 	}
 
-	if (MESSAGING_INTERFACE.available()) { // As soon as serial data is available
-		char inChar = MESSAGING_INTERFACE.read(); // Read a character
+	// As soon as serial data is available
+	if (MESSAGING_INTERFACE.available()) {
+		// Read a character
+		char inChar = MESSAGING_INTERFACE.read();
 		#if DEBUG
 			Serial.print("-> ");
 			Serial.println(inChar);
 		#endif
-		if (inChar == '\n') { // Alla fine del messaggio
+		// If the end of the message was reached
+		if (inChar == '\n') {
 			#if DEBUG
 				Serial.println("Nuovo messaggio queued");
 			#endif
-			inChar = '\0'; // Aggiungi un fine stringa anziché un newline
+			// Aggiungi un fine stringa anziche' un newline
+			inChar = '\0';
 			nuoviMessaggi++;
 		}
-		messaggi.push(inChar); // Pusha il carattere nello stack di messaggi
+		// Pusha il carattere nello stack di messaggi
+		messaggi.push(inChar);
 	}
 }
