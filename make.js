@@ -1,16 +1,14 @@
 #!/usr/bin/node
 
-fs = require('fs');
-keys = JSON.parse(fs.readFileSync('keys.json').toString('utf8'));
-originalProgram = fs.readFileSync('Base.raw').toString('utf8');
-replacement = "\n";
-
-// All the \ts don't serve any real function and are ignored by the compiler, but they make the code more readable (thus making debugging easier).
+fs                = require('fs');
+keys              = JSON.parse(fs.readFileSync('keys.json').toString('utf8'));
+originalProgram   = fs.readFileSync('Base.raw').toString('utf8');
+key_template      = fs.readFileSync("Key.cpptemplate").toString("utf8");
+tapCount_template = fs.readFileSync("TapCount.cpptemplate").toString("utf8");
+replacement       = ""
 
 for (key in keys) {
-	data = keys[key]
-	replacement       = fs.readFileSync("Key.cpptemplate").toString("utf8");
-	tapCount_template = fs.readFileSync("TapCount.cpptemplate").toString("utf8");
+	data = keys[key];
 
 	HandleTapCount = "";
 	tapCount = 0;
@@ -19,7 +17,7 @@ for (key in keys) {
 		tapCount++;
 	});
 
-	replacement = substituteVars(replacement, {
+	replacement += substituteVars(key_template, {
 		"case": quote(key),
 		"CtrlShift": setVars(data.ctrlShift),
 		"CtrlNoshift": setVars(data.ctrl),
@@ -42,7 +40,7 @@ function quote(text) {
 function setVars(data) {
 	if (typeof data !== 'undefined') {
 		if (typeof data.toExpression == 'undefined') data.toExpression = data.toBuffer;
-		returnVal = '\t\tstrcpy(toBuffer, "' + data.toBuffer     + '");strcpy(toExpression, "' + data.toExpression + '");\n'
+		returnVal = 'strcpy(toBuffer, "' + data.toBuffer     + '");strcpy(toExpression, "' + data.toExpression + '");'
 		return returnVal;	
 	} else {
 		return "";
