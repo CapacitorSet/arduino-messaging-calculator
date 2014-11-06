@@ -59,17 +59,9 @@ function quote(text) {
 
 function setVars(data) {
 	if (typeof data.toExpression == 'undefined') data.toExpression = data.toBuffer;
-	returnVal = '\t\ttoBuffer     = "' + data.toBuffer     + '";\n'
-	returnVal+= '\t\ttoExpression = "' + data.toExpression + '";\n'
+	returnVal = '\t\tstrcpy(toBuffer, "' + data.toBuffer     + '");\n'
+	returnVal+= '\t\tstrcpy(toExpression, "' + data.toExpression + '");\n'
 	return returnVal;	
-}
-
-function generateManageKeyCode(data) {
-	if (typeof data.toExpression == 'undefined') data.toExpression = data.toBuffer;
-	returnVal = '\t\t    toBuffer = "' + data.toBuffer     + '";\n'
-	returnVal+= '\t\ttoExpression = "' + data.toExpression + '";\n'
-	returnVal+= '\t\tManageKey(toBuffer, toExpression, buffer, expression, latestExpressionLength);\n';
-	return returnVal;
 }
 
 originalProgram = originalProgram.replace("/* KEYS */", replacement);

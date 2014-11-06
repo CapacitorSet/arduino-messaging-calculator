@@ -119,7 +119,7 @@ void loop () {
 	const char key = customKeypad.getKey();
 	bool printExpression = true;
 	bool clearScreen = true;
-	String toBuffer, toExpression;
+	char toBuffer[5], toExpression[10];
 
 	if (key) {
 		const bool shift = !digitalRead(SHIFT_KEY_PIN); // It's negated because, well, that's how it's meant to be done.
