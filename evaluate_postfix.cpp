@@ -98,6 +98,7 @@ evaluate_postfix (String & postfix, double &numeratore, int &divisore) {
   StackList <double> numeratori;
   StackList <int> divisori; // gli operandi
   char c;                   // the character parsed.
+  unsigned int i, arg;
 
   // check if the expression is empty.
   if (postfix.length () <= 0) {
@@ -109,7 +110,7 @@ evaluate_postfix (String & postfix, double &numeratore, int &divisore) {
   }
 
   // handle each character from the postfix expression.
-  for (int i = 0; i < postfix.length (); i++) {
+  for (i = 0; i < postfix.length (); i++) {
     // get the character.
     c = postfix.charAt (i);
 
@@ -155,7 +156,7 @@ evaluate_postfix (String & postfix, double &numeratore, int &divisore) {
         }
 
         // fetch all the arguments of the operator.
-        for (int arg = 0; arg < nargs; arg++) {
+        for (arg = 0; arg < nargs; arg++) {
           args_numeratore[arg] = numeratori.pop();
           args_divisore[arg] = divisori.pop();
         }
