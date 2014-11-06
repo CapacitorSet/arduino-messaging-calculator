@@ -30,7 +30,7 @@ byte colPins[KEYPAD_COLS] = { 8,  7,  6, 5};
 #include "QueueArray.h"
 #include <EEPROM.h>
 
-void ManageKey(char* toBuffer, char* toExpression, String &buffer, String &expression, int &latestExpressionLength) {
+void ManageKey(String toBuffer, String toExpression, String &buffer, String &expression, int &latestExpressionLength) {
 	buffer     += toBuffer;
 	expression += toExpression;
 	latestExpressionLength = 1;
@@ -119,6 +119,7 @@ void loop () {
 	const char key = customKeypad.getKey();
 	bool printExpression = true;
 	bool clearScreen = true;
+	String toBuffer, toExpression;
 
 	if (key) {
 		const bool shift = !digitalRead(SHIFT_KEY_PIN); // It's negated because, well, that's how it's meant to be done.

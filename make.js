@@ -12,17 +12,17 @@ for (key in keys) {
 	replacement += "case " + quote(key) + ":\n";
 	if (data.ctrlShift) {
 		replacement += "\tif (ctrl && shift) {\n"
-		replacement += generateManageKeyCode(data.ctrlShift);
+		replacement += setVars(data.ctrlShift);
 		replacement += "\t} else\n";
 	}
 	if (data.ctrl) {
 		replacement += "\tif (ctrl && !shift) {\n"
-		replacement += generateManageKeyCode(data.ctrl);
+		replacement += setVars(data.ctrl);
 		replacement += "\t} else\n";
 	}
 	if (data.shift) {
 		replacement += "\tif (!ctrl && shift) {\n"
-		replacement += generateManageKeyCode(data.shift);
+		replacement += setVars(data.shift);
 		replacement += "\t} else\n";
 	}
 	replacement += "\tif (!ctrl && !shift) {\n"
@@ -34,14 +34,15 @@ for (key in keys) {
 	data.textMode.forEach(function (key) {
 		replacement += "\t\t\t\tcase " + tapCount + ":\n";
 		item = {"toBuffer": key, "toExpression": key};
-		replacement += "\t\t\t" + generateManageKeyCode(item);
+		replacement += "\t\t\t" + setVars(item);
 		replacement += "\t\t\t\t\tbreak;\n"
 		tapCount++;
 	});
 	replacement += "\t\t\t}\n";
 	replacement += "\t\t} else {\n";
-	replacement += "\t" + generateManageKeyCode(data.vanilla);
+	replacement += "\t" + setVars(data.vanilla);
 	replacement += "\t\t}\n";
+	replacement += "\tManageKey(toBuffer, toExpression, buffer, expression, latestExpressionLength);\n";
 	replacement += "\t}\n";
 
 	replacement += "\tbreak;\n"
@@ -56,9 +57,19 @@ function quote(text) {
 	}
 }
 
+function setVars(data) {
+	if (typeof data.toExpression == 'undefined') data.toExpression = data.toBuffer;
+	returnVal = '\t\ttoBuffer     = "' + data.toBuffer     + '";\n'
+	returnVal+= '\t\ttoExpression = "' + data.toExpression + '";\n'
+	return returnVal;	
+}
+
 function generateManageKeyCode(data) {
 	if (typeof data.toExpression == 'undefined') data.toExpression = data.toBuffer;
-	return "\t\tManageKey(\"" + data.toBuffer + "\", \"" + data.toExpression + "\", buffer, expression, latestExpressionLength);\n";
+	returnVal = '\t\t    toBuffer = "' + data.toBuffer     + '";\n'
+	returnVal+= '\t\ttoExpression = "' + data.toExpression + '";\n'
+	returnVal+= '\t\tManageKey(toBuffer, toExpression, buffer, expression, latestExpressionLength);\n';
+	return returnVal;
 }
 
 originalProgram = originalProgram.replace("/* KEYS */", replacement);
