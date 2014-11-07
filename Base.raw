@@ -162,7 +162,7 @@ void loop () {
 					lcd.write("                "); // Sedici spazi, in modo da clearare la riga sotto
 					lcd.setCursor(0, 1); // E torna all'inizio
 					itoa(nuoviMessaggi, messageCount, 10);
-					lcd.write(nuoviMessaggi);
+					lcd.write(messageCount);
 					lcd.write(" nuovi messaggi");
 				}
 				break;
