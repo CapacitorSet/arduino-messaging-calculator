@@ -357,11 +357,11 @@ void loop () {
 					if (messaggi.isEmpty()) {
 						lcd.write("Nessun messaggio");
 					} else {
-						char character = messaggi.pop();
-						while (character != '\0') { // Keep popping until \0
+						char character;
+						do { // Keep popping until \0
 							character = messaggi.pop();
 							if (character != '\0') lcd.write(character);
-						}
+						} while (character != '\0')
 						nuoviMessaggi--;
 					}
 				} else {
