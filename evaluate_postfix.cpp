@@ -45,6 +45,11 @@ void simplify(int &a, int &b) {
   b = (int) b / fattore;
 }
 
+unsigned int countDigits(int number) {
+  unsigned int digitNumber = 0; do { number /= 10; digitNumber++; } while (number != 0); // http://stackoverflow.com/a/1489861/1541408 
+  return digitNumber;
+}
+
 void subtract(double numeratore1, int divisore1, double numeratore2, int divisore2, StackList<double> &numeratori, StackList<int> &divisori) {
   if (fmod(numeratore1, 1) != 0) { // If the first arg is a double
     numeratore2 = numeratore2 / divisore2;
@@ -161,6 +166,20 @@ evaluate_postfix (String & postfix, double &numeratore, int &divisore) {
           args_divisore[arg] = divisori.pop();
         }
 
+        #if DEBUG
+          Serial.print("(");
+          Serial.print(args_numeratore[0]);
+          Serial.print("/");
+          Serial.print(args_divisore[0]);
+          Serial.print(")");
+          Serial.print(c);
+          Serial.print("(");
+          Serial.print(args_numeratore[1]);
+          Serial.print("/");
+          Serial.print(args_divisore[1]);
+          Serial.println(")");
+        #endif
+
         // evaluate the operator with its operands.
         
         switch (c){
@@ -190,8 +209,10 @@ evaluate_postfix (String & postfix, double &numeratore, int &divisore) {
 
           case '.':
             // Assumption: both i divisori sono 1
-            numeratori.push(args_numeratore[1] + (1/pow(10, ceil(log10(args_numeratore[0]))))*args_numeratore[0] * 10 - 1);
-            divisori.push(1);
+            int digitAmount;
+            digitAmount = countDigits(args_numeratore[0]);
+            numeratori.push(args_numeratore[1]*pow(10,digitAmount) + args_numeratore[0]);
+            divisori.push(pow(10,digitAmount));
             break;
             
           case 's':

@@ -50,7 +50,7 @@ infix_postfix (String & infix, String & postfix) {
       // if the character is an identifier.
       if (is_identifier (c)) {
         if(isDot){
-          postfix += '1';
+//          postfix += '1';
           isDot = false;
         }
         // add the character to postfix.
