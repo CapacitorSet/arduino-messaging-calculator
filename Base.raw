@@ -361,7 +361,7 @@ void loop () {
 						do { // Keep popping until \0
 							character = messaggi.pop();
 							if (character != '\0') lcd.write(character);
-						} while (character != '\0')
+						} while (character != '\0');
 						nuoviMessaggi--;
 					}
 				} else {
