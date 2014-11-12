@@ -5,10 +5,21 @@
 		"debug": "Print debug information on the serial port? [Default: no] ",
 		"messagingInterface": "Which interface shall be used to send messages, Serial or Serial1? [Default: Serial1] ",
 		"typeArduino": "Is the board an Arduino Micro/Arduino Leonardo? [Default: yes] ",
-		"shiftPin": "Which pin was the Shift key connected to? [Default: 4] ",
-		"ctrlPin": "Which pin was the Ctrl key connected to? [Default: 3] ",
+		"shiftPin": "Which pin is the Shift key connected to? [Default: 4] ",
+		"ctrlPin": "Which pin is the Ctrl key connected to? [Default: 3] ",
 		"lcdCols": "How many columns (characters) does the LCD display have? [Default: 16] ",
 		"lcdRows": "How many rows does the LCD display have? [Default: 2] ",
+
+		"keypadRow1": "Which pin is the first row of the keypad (keys 1, 2, 3, +) connected to? [Default: 12] ",
+		"keypadRow2": "Which pin is the second row of the keypad (keys 4, 5, 6, -) connected to? [Default: 11] ",
+		"keypadRow3": "Which pin is the third row of the keypad (keys 7, 8, 9, *) connected to? [Default: 10] ",
+		"keypadRow4": "Which pin is the fourth row of the keypad (keys S, 0, D, /) connected to? [Default: 9] ",
+
+		"keypadCol1": "Which pin is the first column of the keypad (keys 1, 4, 7, S) connected to? [Default: 8] ",
+		"keypadCol2": "Which pin is the second column of the keypad (keys 2, 5, 8, 0) connected to? [Default: 7] ",
+		"keypadCol3": "Which pin is the third column of the keypad (keys 3, 6, 9, D) connected to? [Default: 6] ",
+		"keypadCol4": "Which pin is the fourth column of the keypad (keys +, -, *, /) connected to? [Default: 5] ",
+
 		"done": "Done!"
 	},
 	"it": {
@@ -17,10 +28,21 @@
 		"debug": "Stampare informazioni di debug sulla porta seriale? [Default: no] ",
 		"messagingInterface": "Quale interfaccia usare per i messaggi, Serial o Serial1? [Default: Serial1] ",
 		"typeArduino": "La scheda e' un Arduino Micro/Arduino Leonardo? [Default: si] ",
-		"shiftPin": "Su quale pin e' collegato il tasto Shift? [Default: 4] ",
-		"ctrlPin": "Su quale pin e' collegato il tasto Ctrl? [Default: 3] ",
+		"shiftPin": "A quale pin e' collegato il tasto Shift? [Default: 4] ",
+		"ctrlPin": "A quale pin e' collegato il tasto Ctrl? [Default: 3] ",
 		"lcdCols": "Quante colonne (caratteri) ha il display LCD? [Default: 16] ",
 		"lcdRows": "Quante righe ha il display LCD? [Default: 2] ",
+
+		"keypadRow1": "A quale pin e' collegata la prima riga del tastierino (tasti 1, 2, 3, +)? [Default: 12] ",
+		"keypadRow2": "A quale pin e' collegata la seconda riga del tastierino (tasti 4, 5, 6, -)? [Default: 11] ",
+		"keypadRow3": "A quale pin e' collegata la terza riga del tastierino (tasti 7, 8, 9, *)? [Default: 10] ",
+		"keypadRow4": "A quale pin e' collegata la quarta riga del tastierino (tasti S, 0, D, /)? [Default: 9] ",
+
+		"keypadCol1": "A quale pin e' collegata la prima colonna del tastierino (tasti 1, 4, 7, S)? [Default: 8] ",
+		"keypadCol2": "A quale pin e' collegata la seconda colonna del tastierino (tasti 2, 5, 8, 0)? [Default: 7] ",
+		"keypadCol3": "A quale pin e' collegata la terza colonna del tastierino (tasti 3, 6, 9, D)? [Default: 6] ",
+		"keypadCol4": "A quale pin e' collegata la quarta colonna del tastierino (tasti +, -, *, /)? [Default: 5] ",
+
 		"done": "Fatto!"
 	}
 }

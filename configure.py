@@ -82,6 +82,64 @@ while True:
 		template = template.replace("$lcdRows", lcdRows)
 		break
 
+while True:
+	keypadRow1 = raw_input(string["keypadRow1"])
+	if (keypadRow1 == ""):
+		keypadRow1 = "12"
+	if (keypadRow1.isdigit()):
+		template = template.replace("$keypadRow1", keypadRow1)
+		break
+while True:
+	keypadRow2 = raw_input(string["keypadRow2"])
+	if (keypadRow2 == ""):
+		keypadRow2 = "11"
+	if (keypadRow2.isdigit()):
+		template = template.replace("$keypadRow2", keypadRow2)
+		break
+while True:
+	keypadRow3 = raw_input(string["keypadRow3"])
+	if (keypadRow3 == ""):
+		keypadRow3 = "10"
+	if (keypadRow3.isdigit()):
+		template = template.replace("$keypadRow3", keypadRow3)
+		break
+while True:
+	keypadRow4 = raw_input(string["keypadRow4"])
+	if (keypadRow4 == ""):
+		keypadRow4 = "9"
+	if (keypadRow4.isdigit()):
+		template = template.replace("$keypadRow4", keypadRow4)
+		break
+
+while True:
+	keypadCol1 = raw_input(string["keypadCol1"])
+	if (keypadCol1 == ""):
+		keypadCol1 = "8"
+	if (keypadCol1.isdigit()):
+		template = template.replace("$keypadCol1", keypadCol1)
+		break
+while True:
+	keypadCol2 = raw_input(string["keypadCol2"])
+	if (keypadCol2 == ""):
+		keypadCol2 = "7"
+	if (keypadCol2.isdigit()):
+		template = template.replace("$keypadCol2", keypadCol2)
+		break
+while True:
+	keypadCol3 = raw_input(string["keypadCol3"])
+	if (keypadCol3 == ""):
+		keypadCol3 = "6"
+	if (keypadCol3.isdigit()):
+		template = template.replace("$keypadCol3", keypadCol3)
+		break
+while True:
+	keypadCol4 = raw_input(string["keypadCol4"])
+	if (keypadCol4 == ""):
+		keypadCol4 = "5"
+	if (keypadCol4.isdigit()):
+		template = template.replace("$keypadCol4", keypadCol4)
+		break
+
 calculator_raw_file = open("calculator.raw", "w")
 calculator_raw_file.write(template)
 calculator_raw_file.close()
