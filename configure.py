@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import json
 
 strings_file = open("strings.json","r")
