@@ -21,13 +21,11 @@ byte colPins[KEYPAD_COLS] = {$keypadCol1, $keypadCol2, $keypadCol3, $keypadCol4}
 #define RESULT_PRECISION 8
 #define RESULT_MAX_SIZE 64
 
-#include "StackList.h"
 #include "infix_postfix.h"
 #include "evaluate_postfix.h"
 #include "conversion_tools.h"
 #include "ShrunkLiquidCrystal.h"
 #include "Keypad.h"
-#include "QueueArray.h"
 #include <EEPROM.h>
 
 // Initialize the LCD object with the appropriate pins
@@ -46,8 +44,8 @@ String expression;                   // Contiene il testo mostrato sull'LCD
 bool textMode = false;               // Indica se la text mode è attiva o no
 unsigned int latestExpressionLength; // So that backspace works correctly with multi-character items like "log" or "tan"
 /* TODO: fix the line above (turn it into a LIFO stack) */
-QueueArray <char> messaggi;          // La coda dei messaggi ricevuti
-QueueArray <char> emptyQueue;        // Una coda vuota, usata per azzerare la coda dei messaggi
+char messaggi[500];                 // La coda dei messaggi ricevuti
+unsigned int posizioneMessaggi = 0; // La posizione attuale nello stack
 unsigned int nuoviMessaggi = 0;      // Il numero di messaggi non letti
 
 bool waitingForMemoryAddress = false; // Si sta aspettando un indirizzo dall'utente?
@@ -354,12 +352,12 @@ void loop () {
 
 					lcd.clear();
 					lcd.setCursor(0, 0);
-					if (messaggi.isEmpty()) {
+					if (nuoviMessaggi == 0) {
 						lcd.write("Nessun messaggio");
 					} else {
 						char character;
 						do { // Keep popping until \0
-							character = messaggi.pop();
+							character = messaggi[posizioneMessaggi--];
 							if (character != '\0') lcd.write(character);
 						} while (character != '\0');
 						nuoviMessaggi--;
@@ -408,6 +406,6 @@ void loop () {
 			nuoviMessaggi++;
 		}
 		// Pusha il carattere nello stack di messaggi
-		messaggi.push(inChar);
+		messaggi[posizioneMessaggi++] = inChar;
 	}
 }
