@@ -2,9 +2,9 @@
 
 fs                = require('fs');
 keys              = JSON.parse(fs.readFileSync('keys.json').toString('utf8'));
-originalProgram   = fs.readFileSync('Base.raw').toString('utf8');
-key_template      = fs.readFileSync("Key.cpptemplate").toString("utf8");
-tapCount_template = fs.readFileSync("TapCount.cpptemplate").toString("utf8");
+originalProgram   = fs.readFileSync('calculator.raw').toString('utf8');
+key_template      = fs.readFileSync("key.cpptemplate").toString("utf8");
+tapCount_template = fs.readFileSync("tapCount.cpptemplate").toString("utf8");
 replacement       = ""
 
 for (key in keys) {
