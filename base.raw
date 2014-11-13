@@ -21,6 +21,8 @@ byte colPins[KEYPAD_COLS] = {$keypadCol1, $keypadCol2, $keypadCol3, $keypadCol4}
 #define RESULT_PRECISION 8
 #define RESULT_MAX_SIZE 64
 
+#define BT_BAUDRATE 38400
+
 #include "infix_postfix.h"
 #include "evaluate_postfix.h"
 #include "conversion_tools.h"
@@ -65,7 +67,7 @@ void setup () {
 		// Enable the Serial interface for sending debug messages
 		Serial.begin (9600);
 	#endif
-	MESSAGING_INTERFACE.begin(9600);
+	MESSAGING_INTERFACE.begin(BT_BAUDRATE);
 
 	lcd.print("Tette *-*"); // lol
 
