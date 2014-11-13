@@ -17,5 +17,5 @@ $HandleTapCount
 			$Vanilla
 		}
 	}
-	ManageKey(toBuffer, toExpression, buffer, expression, latestExpressionLength);
+	ManageKey(toBuffer, toExpression, buffer, expression);
 	break;

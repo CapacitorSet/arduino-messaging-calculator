@@ -42,8 +42,8 @@ unsigned long time = 0; // The timestamp of the latest tap
 String buffer;                       // Contiene l'espressione letta dal parser
 String expression;                   // Contiene il testo mostrato sull'LCD
 bool textMode = false;               // Indica se la text mode è attiva o no
-unsigned int latestExpressionLength; // So that backspace works correctly with multi-character items like "log" or "tan"
-/* TODO: fix the line above (turn it into a LIFO stack) */
+unsigned int latestExpressionLength[100]; // So that backspace works correctly with multi-character items like "log" or "tan"
+char currentExpr;
 char messaggi[500];                 // La coda dei messaggi ricevuti
 unsigned int posizioneMessaggi = 0; // La posizione attuale nello stack
 unsigned int nuoviMessaggi = 0;      // Il numero di messaggi non letti
@@ -51,6 +51,13 @@ unsigned int nuoviMessaggi = 0;      // Il numero di messaggi non letti
 bool waitingForMemoryAddress = false; // Si sta aspettando un indirizzo dall'utente?
 bool waitingForData = false;          // Si sta aspettando dei dati (da scrivere in EEPROM)?
 String memoryAddress;                 // Stores the memory address between loop() calls
+
+struct ExpressionStack {
+  unsigned int length[100]; // So that backspace works correctly with multi-character items like "log" or "tan"
+  unsigned int currentExpr;  
+};
+
+struct ExpressionStack latestExpression;
 
 /* Setup the serial interfaces and the pushbutton pins */
 void setup () {
@@ -64,13 +71,15 @@ void setup () {
 
 	pinMode(SHIFT_KEY_PIN, INPUT_PULLUP); // "Keys" are pushbuttons, so they must be read using pullup resistors
 	pinMode(CTRL_KEY_PIN, INPUT_PULLUP);
+
+        latestExpression.currentExpr = 0;
 }
 
 /* Deal with the buffer and the expression [todo: that expression-length-as-stack stuff] */
-void ManageKey(String toBuffer, String toExpression, String &buffer, String &expression, unsigned int &latestExpressionLength) {
+void ManageKey(String toBuffer, String toExpression, String &buffer, String &expression) {
 	buffer     += toBuffer;
 	expression += toExpression;
-	latestExpressionLength = 1;
+	latestExpression.length[latestExpression.currentExpr++] = toExpression.length();
 }
 
 /* Appropriately print an expression to the LCD display (deals with autoscroll and stuff) */
@@ -135,7 +144,7 @@ void loop () {
 					// Remove the last element inserted in the buffer
 					buffer = buffer.substring(0, buffer.length() - 1);
 					// and in the expression
-					expression = expression.substring(0, expression.length() - latestExpressionLength);
+					expression = expression.substring(0, expression.length() - latestExpression.length[latestExpression.currentExpr]);
 			} else { // If the last tap was too long ago
 				// Consider the current tap as a "new" one
 				tapCount = 0;
@@ -364,7 +373,8 @@ void loop () {
 					}
 				} else {
 					buffer = buffer.substring(0, buffer.length() - 1);
-					expression = expression.substring(0, expression.length() - latestExpressionLength);
+					expression = expression.substring(0, expression.length() - latestExpression.length[latestExpression.currentExpr]);
+                                        latestExpression.currentExpr--;
 					prevKey = '\0'; // E' difficile da spiegare, ma va tenuto altrimenti non si comporta in modo naturale per l'utente.
 					// ^ Ora non ho neanche idea di come funzioni, quindi: TODO: capire perché c'è la riga sopra. - CapacitorSet
 				}
