@@ -42,10 +42,8 @@ unsigned long time = 0; // The timestamp of the latest tap
 
 /* Writing stuff */
 String buffer;                       // Contiene l'espressione letta dal parser
-String expression;                   // Contiene il testo mostrato sull'LCD
+//String expression;                   // Contiene il testo mostrato sull'LCD
 bool textMode = false;               // Indica se la text mode è attiva o no
-unsigned int latestExpressionLength[100]; // So that backspace works correctly with multi-character items like "log" or "tan"
-char currentExpr;
 char messaggi[500];                 // La coda dei messaggi ricevuti
 unsigned int posizioneMessaggi = 0; // La posizione attuale nello stack
 unsigned int nuoviMessaggi = 0;      // Il numero di messaggi non letti
@@ -54,12 +52,7 @@ bool waitingForMemoryAddress = false; // Si sta aspettando un indirizzo dall'ute
 bool waitingForData = false;          // Si sta aspettando dei dati (da scrivere in EEPROM)?
 String memoryAddress;                 // Stores the memory address between loop() calls
 
-struct ExpressionStack {
-  unsigned int length[100]; // So that backspace works correctly with multi-character items like "log" or "tan"
-  unsigned int currentExpr;  
-};
-
-struct ExpressionStack latestExpression;
+double prevAns;						//Da completare
 
 /* Setup the serial interfaces and the pushbutton pins */
 void setup () {
@@ -73,19 +66,30 @@ void setup () {
 
 	pinMode(SHIFT_KEY_PIN, INPUT_PULLUP); // "Keys" are pushbuttons, so they must be read using pullup resistors
 	pinMode(CTRL_KEY_PIN, INPUT_PULLUP);
-
-        latestExpression.currentExpr = 0;
 }
 
-/* Deal with the buffer and the expression [todo: that expression-length-as-stack stuff] */
-void ManageKey(String toBuffer, String toExpression, String &buffer, String &expression) {
-	buffer     += toBuffer;
-	expression += toExpression;
-	latestExpression.length[latestExpression.currentExpr++] = toExpression.length();
+/* Prende il buffer e sostituisce tutti i caratteri speciali */
+
+String parseBuffer() {
+
+	//Parte molto ripetitiva, potrebbe essere generata da make.js
+
+	String expression = buffer;
+	expression.replace("L(", "log(");
+	expression.replace("l(", "ln(");
+	expression.replace("S(", "asin(");
+	expression.replace("s(", "sin(");
+	expression.replace("a", "Ans");
+	expression.replace("C(", "acos(");
+	expression.replace("c(", "cos(");
+	expression.replace("T(", "atan(");
+	expression.replace("t(", "tan(");
+	return expression;
 }
 
 /* Appropriately print an expression to the LCD display (deals with autoscroll and stuff) */
-void printExpr(String expression) {
+void printExpr() {
+	String expression = parseBuffer();
 	#if DEBUG
 		Serial.print("Printing ");
 		Serial.println(expression);
@@ -122,7 +126,7 @@ void send(String message) {
 	MESSAGING_INTERFACE.print('\n');
 	#if DEBUG
 		Serial.print("<- ");
-		Serial.println(expression);
+		Serial.println(parseBuffer());
 	#endif
 }
 
@@ -130,7 +134,6 @@ void loop () {
 	const char key = customKeypad.getKey();
 	bool printExpression = true;
 	bool clearScreen = true;
-	char toBuffer[5], toExpression[10];
 
 	if (key) {
 		// La lettura e' negata perche' i pin con i pullup sono attivi bassi.
@@ -146,7 +149,7 @@ void loop () {
 					// Remove the last element inserted in the buffer
 					buffer = buffer.substring(0, buffer.length() - 1);
 					// and in the expression
-					expression = expression.substring(0, expression.length() - latestExpression.length[latestExpression.currentExpr]);
+					//expression = expression.substring(0, expression.length() - latestExpression.length[latestExpression.currentExpr]);
 			} else { // If the last tap was too long ago
 				// Consider the current tap as a "new" one
 				tapCount = 0;
@@ -215,17 +218,17 @@ void loop () {
 						waitingForData = true;
 						memoryAddress = buffer; // Holds the user input between calls to loop()
 						buffer = "";
-						expression = "";
 						lcd.setCursor(0, 0);
 						lcd.write("Contenuto?");
 					} else
 					// If we're expecting data
 					if (waitingForData == true) {
+						String tempExpression = parseBuffer();
 						waitingForData = false;
 						const int realAddress = getFirstPositionOfBlock(memoryAddress.toInt());
 						for (int i = 0; i < 64; i++) {
 							// Read 64 bytes from expression and copy them to the EEPROM
-							EEPROM.write(realAddress + i, expression[i]);
+							EEPROM.write(realAddress + i, tempExpression[i]);
 						}
 
 						lcd.setCursor(0,0);
@@ -237,7 +240,6 @@ void loop () {
 						lcd.setCursor(0, 0);
 						lcd.write("Posizione?");
 						buffer = "";
-						expression = "";
 						waitingForMemoryAddress = true;
 					}
 				} else
@@ -257,7 +259,6 @@ void loop () {
 						waitingForData = true;
 						memoryAddress = buffer;
 						buffer = "";
-						expression = "";
 						const int realAddress = getFirstPositionOfBlock(memoryAddress.toInt());
 						lcd.setCursor(0, 0);
 						for (int i = 0; i < 64; i++) {
@@ -272,7 +273,6 @@ void loop () {
 						lcd.setCursor(0, 0);
 						lcd.write("Posizione?");
 						buffer = "";
-						expression = "";
 						waitingForMemoryAddress = true;
 					}
 				} else
@@ -285,7 +285,6 @@ void loop () {
 					clearScreen = false;
 					send(buffer);
 					buffer = "";
-					expression = "";
 					lcd.setCursor(0, 1);
 					lcd.write("Inviato!");
 				} else
@@ -301,7 +300,6 @@ void loop () {
 					String postfix;
 					double numeratore;
 					int divisore;
-//					double* prevAns; // to be implemented
 					char value[RESULT_MAX_SIZE]; // The result, as a char*
 
 					#if DEBUG
@@ -328,6 +326,7 @@ void loop () {
 								// castalo a string prima di printarlo
 								itoa(divisore, value, 10);
 								lcd.print(value);
+								prevAns = divisore;
 							}
 						} else
 						// if the postfix expression couldn't be evaluated
@@ -339,8 +338,7 @@ void loop () {
 					{
 						lcd.write("CantConvert2Infx");
 					}
-					buffer     = "";
-					expression = "";					
+					buffer     = "";					
 				}
 				break;
 			case 'D':
@@ -374,9 +372,14 @@ void loop () {
 						nuoviMessaggi--;
 					}
 				} else {
-					buffer = buffer.substring(0, buffer.length() - 1);
-					expression = expression.substring(0, expression.length() - latestExpression.length[latestExpression.currentExpr]);
-                                        latestExpression.currentExpr--;
+
+					/*
+					 Controllo se il primo carattere da cancellare è una parentesi aperta; se lo è cancello la parentesi e il 
+					 carattere precedente (il nome della funzione, che, per come è fatto adesso il codice può essere solo di un carattere)
+					*/
+
+					int subt = buffer[buffer.length() - 1] == '(' ? 2 : 1; //Controllare se la sintassi string[i] è valida
+					buffer = buffer.substring(0, buffer.length() - subt); 
 					prevKey = '\0'; // E' difficile da spiegare, ma va tenuto altrimenti non si comporta in modo naturale per l'utente.
 					// ^ Ora non ho neanche idea di come funzioni, quindi: TODO: capire perché c'è la riga sopra. - CapacitorSet
 				}
@@ -395,7 +398,7 @@ void loop () {
 
 		if (printExpression == true) {
 			lcd.setCursor(0, 0);
-			printExpr(expression);
+			printExpr();
 		}
 		prevKey = key;
 	}

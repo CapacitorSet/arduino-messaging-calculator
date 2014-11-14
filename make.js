@@ -13,7 +13,7 @@ for (key in keys) {
 	HandleTapCount = "";
 	tapCount = 0;
 	data.textMode.forEach(function (key) {
-		HandleTapCount += tapCount_template.replace("$TapCount", tapCount).replace("$CurrentTap", setVars({"toBuffer": key, "toExpression": key}));
+		HandleTapCount += tapCount_template.replace("$TapCount", tapCount).replace("$CurrentTap", setVars({"toBuffer": key}));
 		tapCount++;
 	});
 
@@ -39,8 +39,7 @@ function quote(text) {
 
 function setVars(data) {
 	if (typeof data !== 'undefined') {
-		if (typeof data.toExpression == 'undefined') data.toExpression = data.toBuffer;
-		returnVal = 'strcpy(toBuffer, "' + data.toBuffer     + '");strcpy(toExpression, "' + data.toExpression + '");'
+		returnVal = 'buffer += "' + data.toBuffer + '";';
 		return returnVal;	
 	} else {
 		return "";
