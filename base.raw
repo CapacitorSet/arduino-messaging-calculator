@@ -52,8 +52,6 @@ bool waitingForMemoryAddress = false; // Si sta aspettando un indirizzo dall'ute
 bool waitingForData = false;          // Si sta aspettando dei dati (da scrivere in EEPROM)?
 String memoryAddress;                 // Stores the memory address between loop() calls
 
-double prevAns;						//Da completare
-
 /* Setup the serial interfaces and the pushbutton pins */
 void setup () {
 	#if DEBUG
@@ -326,7 +324,6 @@ void loop () {
 								// castalo a string prima di printarlo
 								itoa(divisore, value, 10);
 								lcd.print(value);
-								prevAns = divisore;
 							}
 						} else
 						// if the postfix expression couldn't be evaluated
