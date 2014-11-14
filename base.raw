@@ -105,7 +105,7 @@ void printExpr(String expression) {
 
 /* Get the first address of the Nth block */
 int getFirstPositionOfBlock(int block) {
-	const int realAddress = 64 * (block - 1);
+	const int realAddress = 63 * (block - 1);
 	/*
 	 * The code above is equivalent to:
 	 *
@@ -183,10 +183,16 @@ void loop () {
 				if (shift && ctrl) {
 					printExpression = false;
 					clearScreen = false;
-					textMode = !textMode;
-					#if DEBUG
-						Serial.println("Toggling text mode");
-					#endif
+					bool doesPinMatch = true;
+					for (int i = 0; i < 16; i++) {
+						doesPinMatch &= (EEPROM.read(1024-16+i) == expression[i]);
+					}
+					if (doesPinMatch) {
+						textMode = !textMode;
+						#if DEBUG
+							Serial.println("Toggling text mode");
+						#endif
+					}
 				}
 				break;
 			case 'S':
