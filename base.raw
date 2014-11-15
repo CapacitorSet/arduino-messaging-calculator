@@ -133,6 +133,29 @@ void loop () {
 	bool printExpression = true;
 	bool clearScreen = true;
 
+	if (key) {
+		// La lettura e' negata perche' i pin con i pullup sono attivi bassi.
+		const bool shift = !digitalRead(SHIFT_KEY_PIN);
+		const bool ctrl  = !digitalRead(CTRL_KEY_PIN);
+
+		/* Multitap management */
+		if (textMode == true) {
+			// If the last tap was <1 second ago
+			if (key == prevKey && (millis() - time) < 1000) {
+					// Register a new tap
+					tapCount++;
+					// Remove the last element inserted in the buffer
+					buffer = buffer.substring(0, buffer.length() - 1);
+					// and in the expression
+					//expression = expression.substring(0, expression.length() - latestExpression.length[latestExpression.currentExpr]);
+			} else { // If the last tap was too long ago
+				// Consider the current tap as a "new" one
+				tapCount = 0;
+				prevKey = '\0';
+			}
+			time = millis(); // Record the time of this tap for future reference
+		}
+
 		switch (key) {
 			case '0':
 				/* Shift+0 in text mode
