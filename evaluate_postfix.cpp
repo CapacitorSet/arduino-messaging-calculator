@@ -19,12 +19,41 @@
 
 // include some external libraries' headers.
 #include "StackList.h"
+#include "numero.h"
 
 #define SERIAL_DEBUG true
 
 // include some calculator libraries' headers.
 #include "evaluate_postfix.h"
 #include "parse_tools.h"
+
+int mcd(int a, int b) {
+    for (;;)
+    {
+        if (a == 0) return b;
+        b %= a;
+        if (b == 0) return a;
+        a %= b;
+    }
+}
+
+int mcm(int a, int b) {
+    int temp = mcd(a, b);
+    return temp ? (a / temp * b) : 0;
+}
+
+void simplify(struct Numero &n) {
+  if (n.isRational) {
+    int fattore = mcd(n.numeratore, n.denominatore);
+    n.numeratore = n.numeratore / fattore;
+    n.denominatore = n.denominatore / fattore;
+  }
+}
+
+unsigned int countDigits(int number) {
+  unsigned int digitNumber = 0; do { number /= 10; digitNumber++; } while (number != 0); // http://stackoverflow.com/a/1489861/1541408 
+  return digitNumber;
+}
 
 long powint(int factor, unsigned int exponent)
 {
@@ -34,18 +63,10 @@ long powint(int factor, unsigned int exponent)
     return product;
 }
 
-struct Numero {
-  double numeratore;
-  int divisore;
-};
-
 // postfix expression evaluation algorithm.
 bool
-evaluate_postfix (String & postfix, double & result) {
+evaluate_postfix (String & postfix, struct Numero & result) {
   StackList <Numero> stack; // the operands stack.
-  struct Numero zero;
-  zero.numeratore = 0.0;
-  zero.divisore = 1;
   char c;                   // the character parsed.
 
   // check if the expression is empty.
@@ -69,7 +90,8 @@ evaluate_postfix (String & postfix, double & result) {
         // necessary for later reference.
         struct Numero prodotto;
         prodotto.numeratore = 0.0;
-        prodotto.divisore = 1;
+        prodotto.denominatore = 1;
+        prodotto.isRational = true;
         stack.push(prodotto);
 
         // try to fetch / calculate a multi-digit integer number.
@@ -111,15 +133,38 @@ evaluate_postfix (String & postfix, double & result) {
 
         // evaluate the operator with its operands.
         
+        Serial.print(vargs[0].numeratore);
+        Serial.print(c);
+        Serial.println(vargs[1].numeratore);
+        
+        struct Numero risultato;
+        
         switch (c){
+          case '.': {
+/*          unsigned int digitAmount;
+            digitAmount = countDigits(args_numeratore[0]);
+            long factor = pow(10, digitAmount */
+            long factor = powint(10, countDigits(vargs[0].numeratore));
+            risultato.numeratore = vargs[1].numeratore*factor + vargs[0].numeratore;
+            risultato.denominatore = factor;
+            risultato.isRational = true;
+            break;
+          }
           case '+':
-            Serial.println("Summing!");
-            struct Numero somma;
-            somma.numeratore = vargs[1].numeratore + vargs[0].numeratore;
-            somma.divisore = 1;
-            stack.push(somma);
+            if (vargs[0].denominatore == vargs[1].denominatore) {
+              /* This handles the case when both arguments are floats,
+               * and provides a shortcut for summing integers
+               */
+              risultato.numeratore = vargs[0].numeratore + vargs[1].numeratore;
+            } else {
+              risultato.numeratore = vargs[1].numeratore*vargs[0].denominatore + vargs[0].numeratore*vargs[1].denominatore;
+              risultato.denominatore = vargs[1].denominatore * vargs[1].denominatore;
+            }
+            risultato.isRational = vargs[0].isRational && vargs[1].isRational;
             break;
         }
+        simplify(risultato);
+        stack.push(risultato);
 
         // deallocate memory for operands.
         free (vargs);
@@ -140,9 +185,8 @@ evaluate_postfix (String & postfix, double & result) {
   // if there is only one element in the stack.
   if (stack.count () == 1) {
     // return the result of the expression.
-    struct Numero risultato;
-    risultato = stack.pop();
-    result = risultato.numeratore / risultato.divisore;
+    result = stack.pop();
+    return true;
   } else {
     #if SERIAL_DEBUG
       Serial.println("err5");
