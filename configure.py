@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+# Customizes base.raw
+
 import json
 
 strings_file = open("strings.json","r")

@@ -64,12 +64,10 @@
 	},
 	"+": {
 		"ctrlShift": {
-			"toBuffer": "L(",
-			"toExpression": "log("
+			"toBuffer": "L("
 		},
 		"ctrl": {
-			"toBuffer": "l(",
-			"toExpression": "ln("
+			"toBuffer": "l("
 		},
 		"shift": {
 			"toBuffer": "^"
@@ -81,16 +79,13 @@
 	},
 	"-": {
 		"ctrlShift": {
-			"toBuffer": "S(",
-			"toExpression": "asin("
+			"toBuffer": "S("
 		},
 		"ctrl": {
-			"toBuffer": "s(",
-			"toExpression": "sin("
+			"toBuffer": "s("
 		},
 		"shift": {
-			"toBuffer": "a",
-			"toExpression": "Ans"
+			"toBuffer": "a"
 		},
 		"vanilla": {
 			"toBuffer": "-"
@@ -99,12 +94,10 @@
 	},
 	"*": {
 		"ctrlShift": {
-			"toBuffer": "C(",
-			"toExpression": "acos("
+			"toBuffer": "C("
 		},
 		"ctrl": {
-			"toBuffer": "c",
-			"toExpression": "cos("
+			"toBuffer": "c"
 		},
 		"shift": {
 			"toBuffer": "("
@@ -116,12 +109,10 @@
 	},
 	"/": {
 		"ctrlShift": {
-			"toBuffer": "T(",
-			"toExpression": "atan("
+			"toBuffer": "T("
 		},
 		"ctrl": {
-			"toBuffer": "t(",
-			"toExpression": "tan("
+			"toBuffer": "t("
 		},
 		"shift": {
 			"toBuffer": ")"
