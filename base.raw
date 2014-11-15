@@ -73,15 +73,15 @@ String parseBuffer() {
 	//Parte molto ripetitiva, potrebbe essere generata da make.js
 
 	String expression = buffer;
-	expression.replace("L(", "log(");
-	expression.replace("l(", "ln(");
-	expression.replace("S(", "asin(");
-	expression.replace("s(", "sin(");
+	expression.replace("L", "log ");
+	expression.replace("l", "ln ");
+	expression.replace("S", "asin ");
+	expression.replace("s", "sin ");
 	expression.replace("a", "Ans");
-	expression.replace("C(", "acos(");
-	expression.replace("c(", "cos(");
-	expression.replace("T(", "atan(");
-	expression.replace("t(", "tan(");
+	expression.replace("C", "acos ");
+	expression.replace("c", "cos ");
+	expression.replace("T", "atan ");
+	expression.replace("t", "tan ");
 	return expression;
 }
 
@@ -369,16 +369,14 @@ void loop () {
 						nuoviMessaggi--;
 					}
 				} else {
-
-					/*
-					 Controllo se il primo carattere da cancellare è una parentesi aperta; se lo è cancello la parentesi e il 
-					 carattere precedente (il nome della funzione, che, per come è fatto adesso il codice può essere solo di un carattere)
-					*/
-
-					int subt = buffer[buffer.length() - 1] == '(' ? 2 : 1; //Controllare se la sintassi string[i] è valida
-					buffer = buffer.substring(0, buffer.length() - subt); 
-					prevKey = '\0'; // E' difficile da spiegare, ma va tenuto altrimenti non si comporta in modo naturale per l'utente.
-					// ^ Ora non ho neanche idea di come funzioni, quindi: TODO: capire perché c'è la riga sopra. - CapacitorSet
+					buffer = buffer.substring(0, buffer.length() - 1);
+					prevKey = '\0';
+					/* Evita che il multitap funzioni accidentalmente.
+					 * Per esempio,se si digita "a", poi si cancella,
+					 * poi si digita di nuovo "a", il risultato sarebbe
+					 * "b" se non ci fosse la riga sopra, perché il
+					 * multitap agirebbe.
+					 */
 				}
 				break;
 		}
