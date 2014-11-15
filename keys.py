@@ -30,7 +30,10 @@ def substituteVars(template, data):
 	return temp
 
 def quote(key):
-	return ('"' + key + '"')
+	if len(key) == 1:
+		return "'" + key + "'"
+	else:
+		return '"' + key + '"'
 
 
 def setVars(data):
@@ -46,7 +49,7 @@ for key in keys:
 	tapCount = 0
 	for item in data["textMode"]:
 		temp = tap_template.replace("$TapCount", str(tapCount))
-		#temp = temp.replace("$CurrentTap", setVars({"toBuffer": key})
+		temp = temp.replace("$CurrentTap", setVars({"toBuffer": key}))
 		HandleTapCount = temp
 		tapCount += 1
 
