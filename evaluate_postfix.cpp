@@ -151,15 +151,8 @@ evaluate_postfix (String & postfix, struct Numero & result) {
             break;
           }
           case '+':
-            if (vargs[0].denominatore == vargs[1].denominatore) {
-              /* This handles the case when both arguments are floats,
-               * and provides a shortcut for summing integers
-               */
-              risultato.numeratore = vargs[0].numeratore + vargs[1].numeratore;
-            } else {
-              risultato.numeratore = vargs[1].numeratore*vargs[0].denominatore + vargs[0].numeratore*vargs[1].denominatore;
-              risultato.denominatore = vargs[1].denominatore * vargs[1].denominatore;
-            }
+            risultato.numeratore = vargs[1].numeratore*vargs[0].denominatore + vargs[0].numeratore*vargs[1].denominatore;
+            risultato.denominatore = vargs[1].denominatore * vargs[1].denominatore;
             risultato.isRational = vargs[0].isRational && vargs[1].isRational;
             break;
         }
