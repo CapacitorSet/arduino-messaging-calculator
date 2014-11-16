@@ -152,9 +152,23 @@ evaluate_postfix (String & postfix, struct Numero & result) {
           }
           case '+':
             risultato.numeratore = vargs[1].numeratore*vargs[0].denominatore + vargs[0].numeratore*vargs[1].denominatore;
+            goto sum;
+          case '-':
+            risultato.numeratore = vargs[1].numeratore*vargs[0].denominatore - vargs[0].numeratore*vargs[1].denominatore;
+            goto sum;
+        }
+        goto rest;
+
+sum:
             risultato.denominatore = vargs[1].denominatore * vargs[1].denominatore;
             risultato.isRational = vargs[0].isRational && vargs[1].isRational;
-            break;
+            goto rest;
+
+rest:
+        Serial.println(risultato.denominatore);
+        if (risultato.denominatore < 0) {
+          risultato.denominatore = -risultato.denominatore;
+          risultato.numeratore   = -risultato.numeratore;
         }
         simplify(risultato);
         stack.push(risultato);
