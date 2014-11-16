@@ -19,12 +19,15 @@
 
 // include some external libraries' headers.
 #include "StackList.h"
+#include "numero.h"
+
+#define SERIAL_DEBUG true
 
 // include some calculator libraries' headers.
 #include "evaluate_postfix.h"
 #include "parse_tools.h"
 
- int mcd(int a, int b) {
+unsigned int mcd(unsigned int a, unsigned int b) {
     for (;;)
     {
         if (a == 0) return b;
@@ -35,14 +38,16 @@
 }
 
 int mcm(int a, int b) {
-    int temp = mcd(a, b);
+    unsigned int temp = mcd(abs(a), abs(b));
     return temp ? (a / temp * b) : 0;
 }
 
-void simplify(int &a, int &b) {
-  int fattore = mcd(a, b);
-  a = (int) a / fattore;
-  b = (int) b / fattore;
+void simplify(struct Numero &n) {
+  if (n.isRational) {
+    int fattore = mcd(n.numeratore, n.denominatore);
+    n.numeratore = n.numeratore / fattore;
+    n.denominatore = n.denominatore / fattore;
+  }
 }
 
 unsigned int countDigits(int number) {
@@ -50,47 +55,14 @@ unsigned int countDigits(int number) {
   return digitNumber;
 }
 
-void subtract(double numeratore1, int divisore1, double numeratore2, int divisore2, StackList<double> &numeratori, StackList<int> &divisori) {
-  if (fmod(numeratore1, 1) != 0) { // If the first arg is a double
-    numeratore2 = numeratore2 / divisore2;
-              // Casts the second item to a double (no need to convert args_divisore[1])
-    numeratori.push(numeratore2 - numeratore1);
-    divisori.push(1);
-  } else if (fmod(numeratore2,  1) != 0) { // If the second arg is a double
-    numeratore1 = numeratore1 / divisore1;
-    // Casts the first item to a double (no need to convert args_divisore[0])
-    numeratori.push(numeratore2 - numeratore1);
-    divisori.push(1);
-  } else {
-    int divisore = mcm(divisore1, divisore2);
-    numeratori.push((numeratore2 * divisore / divisore2) - (numeratore1 * divisore / divisore1));
-    divisori.push(divisore);
-  }
+double powdouble(double factor, unsigned int exponent) {
+    double product = 1;
+    while (exponent--)
+       product *= factor;
+    return product;
 }
 
-void divide(double numeratore1, int divisore1, double numeratore2, int divisore2, StackList<double> &numeratori, StackList<int> &divisori) {
-  if (fmod(numeratore1, 1) != 0) { // If the first arg is a double
-    numeratore2 = numeratore2 / divisore2;
-              // Casts the second item to a double (no need to convert args_divisore[1])
-    numeratori.push(numeratore2 / numeratore1);
-    divisori.push(1);
-  } else if (fmod(numeratore2,  1) != 0) { // If the second arg is a double
-    numeratore1 = numeratore1 / divisore1;
-    // Casts the first item to a double (no need to convert args_divisore[0])
-    numeratori.push(numeratore2 / numeratore1);
-    divisori.push(1);
-  } else {
-    // a/b / c/d = a/b * d/c = ad/bc
-    int divisore = divisore1 * numeratore2;
-    int numeratore = numeratore1 * divisore2;
-    simplify(numeratore, divisore);
-    numeratori.push(numeratore);
-    divisori.push(divisore);
-  }
-}
-
-long powint(int factor, unsigned int exponent)
-{
+long powint(int factor, unsigned int exponent) {
     long product = 1;
     while (exponent--)
        product *= factor;
@@ -99,15 +71,13 @@ long powint(int factor, unsigned int exponent)
 
 // postfix expression evaluation algorithm.
 bool
-evaluate_postfix (String & postfix, double &numeratore, int &divisore) {
-  StackList <double> numeratori;
-  StackList <int> divisori; // gli operandi
+evaluate_postfix (String & postfix, struct Numero & result) {
+  StackList <Numero> stack; // the operands stack.
   char c;                   // the character parsed.
-  unsigned int i, arg;
 
   // check if the expression is empty.
   if (postfix.length () <= 0) {
-    #if DEBUG
+    #if SERIAL_DEBUG
       Serial.println("err1");
       // POSTFIX-EVALUATION: the expression is empty.
     #endif
@@ -115,7 +85,7 @@ evaluate_postfix (String & postfix, double &numeratore, int &divisore) {
   }
 
   // handle each character from the postfix expression.
-  for (i = 0; i < postfix.length (); i++) {
+  for (int i = 0; i < postfix.length (); i++) {
     // get the character.
     c = postfix.charAt (i);
 
@@ -124,14 +94,19 @@ evaluate_postfix (String & postfix, double &numeratore, int &divisore) {
       // if the character is an identifier.
       if (is_identifier (c)) {
         // necessary for later reference.
-        numeratori.push (0);
+        struct Numero prodotto;
+        prodotto.numeratore = 0.0;
+        prodotto.denominatore = 1;
+        prodotto.isRational = true;
+        stack.push(prodotto);
 
         // try to fetch / calculate a multi-digit integer number.
         for (; i < postfix.length () && is_identifier (c = postfix.charAt (i)); i++) {
           // calculate the number so far with its digits.
-          numeratori.push(10.0 * numeratori.pop() + (c - '0'));
+          stack.pop();
+          prodotto.numeratore = prodotto.numeratore * 10.0 + (c - '0');
+          stack.push(prodotto);
         }
-        divisori.push(1); // An integer number has divisor 1
 
         // fix the index in order to 'ungetch' the non-identifier character.
         i--;
@@ -142,8 +117,8 @@ evaluate_postfix (String & postfix, double &numeratore, int &divisore) {
         int nargs = op_operands_count (c);
 
         // if there aren't enough arguments in the stack.
-        if (nargs > numeratori.count ()) {
-          #if DEBUG
+        if (nargs > stack.count ()) {
+          #if SERIAL_DEBUG
             Serial.println("err2");
             // POSTFIX-EVALUATION: not sufficient operator arguments in the expression.
           #endif
@@ -151,134 +126,129 @@ evaluate_postfix (String & postfix, double &numeratore, int &divisore) {
         }
 
         // allocate enough memory for the arguments of the operator.
-        double *args_numeratore = (double *) malloc (sizeof (double) * nargs);
-        double *args_divisore   = (double *) malloc (sizeof (double) * nargs);
+        Numero *vargs = (Numero *) malloc (sizeof (Numero) * nargs);
 
         // if there was memory allocation error.
-        if (args_numeratore == NULL) {
+        if (vargs == NULL)
           Serial.println("err3");
           // POSTFIX-EVALUATION: insufficient memory for storing operator arguments.
-        }
 
         // fetch all the arguments of the operator.
-        for (arg = 0; arg < nargs; arg++) {
-          args_numeratore[arg] = numeratori.pop();
-          args_divisore[arg] = divisori.pop();
-        }
-
-        #if DEBUG
-          Serial.print("(");
-          Serial.print(args_numeratore[0]);
-          Serial.print("/");
-          Serial.print(args_divisore[0]);
-          Serial.print(")");
-          Serial.print(c);
-          Serial.print("(");
-          Serial.print(args_numeratore[1]);
-          Serial.print("/");
-          Serial.print(args_divisore[1]);
-          Serial.println(")");
-        #endif
+        for (int arg = 0; arg < nargs; arg++)
+          vargs[arg] = stack.pop ();
 
         // evaluate the operator with its operands.
         
+        Serial.print(vargs[0].numeratore);
+        Serial.print('/');
+        Serial.print(vargs[0].denominatore);
+        Serial.print(' ');
+        Serial.print(c);
+        Serial.print(' ');
+        Serial.print(vargs[1].numeratore);
+        Serial.print('/');
+        Serial.println(vargs[1].denominatore);
+        
+        struct Numero risultato;
+        
         switch (c){
-          case '+':
-            subtract(-args_numeratore[0], args_divisore[0], args_numeratore[1], args_divisore[1], numeratori, divisori);
-            break;
-
-          case '-':
-            subtract(args_numeratore[0], args_divisore[0], args_numeratore[1], args_divisore[1], numeratori, divisori);
-            break;
-
-          case '/':
-            if (args_numeratore[0] == 0) {
-              #if DEBUG
-                Serial.println("div0");
-              #endif
-              return false;
-            }
-            divide(args_numeratore[1], args_divisore[1], args_numeratore[0], args_divisore[0], numeratori, divisori);
-            break;
-
-          case '*':
-            divide(args_numeratore[0], args_divisore[0], args_divisore[1], args_numeratore[1], numeratori, divisori);
-            // Notare che divisore e numeratore del secondo numero sono scambiati: questo lo rende equivalente a una moltiplicazione.
-            // a/b * c/d = a/b / d/c
-            break;
-
-          case '.':
-            // Assumption: both i divisori sono 1
-            int digitAmount;
+          case '.': {
+/*          unsigned int digitAmount;
             digitAmount = countDigits(args_numeratore[0]);
-            numeratori.push(args_numeratore[1]*pow(10,digitAmount) + args_numeratore[0]);
-            divisori.push(pow(10,digitAmount));
+            long factor = pow(10, digitAmount */
+            long factor = powint(10, countDigits(vargs[0].numeratore));
+            risultato.numeratore = vargs[1].numeratore*factor + vargs[0].numeratore;
+            risultato.denominatore = factor;
+            risultato.isRational = true;
             break;
-            
+          }
+          case '+':
+            risultato.numeratore = vargs[1].numeratore*vargs[0].denominatore + vargs[0].numeratore*vargs[1].denominatore;
+            goto sum;
+          case '-':
+            risultato.numeratore = vargs[1].numeratore*vargs[0].denominatore - vargs[0].numeratore*vargs[1].denominatore;
+            goto sum;
+          case '*':
+            risultato.numeratore = vargs[1].numeratore * vargs[0].numeratore;
+            risultato.denominatore = vargs[1].denominatore * vargs[0].denominatore;
+            break;
+          case '/':
+            risultato.numeratore = vargs[1].numeratore * vargs[0].denominatore;
+            risultato.denominatore = vargs[1].denominatore * vargs[0].numeratore;
+            break;
+          case '^': {
+            if ((vargs[0].numeratore/vargs[0].denominatore)<0) {
+              struct Numero temp;
+              temp.denominatore = vargs[1].numeratore;
+              temp.numeratore = vargs[1].denominatore;
+              temp.isRational = vargs[1].isRational;
+              vargs[1] = temp;
+              vargs[0].numeratore = abs(vargs[0].numeratore);
+              vargs[0].denominatore = abs(vargs[0].denominatore);
+            }
+            if (fmod(vargs[0].numeratore, 1.0) == 0.0 && vargs[0].denominatore == 1) {
+              risultato.numeratore = powdouble(vargs[1].numeratore, vargs[0].numeratore);
+              risultato.denominatore = powint(vargs[1].denominatore, vargs[0].numeratore);
+              risultato.isRational = true;
+            } else {
+              risultato.numeratore = pow(vargs[1].numeratore, vargs[0].numeratore / vargs[0].denominatore) / pow(vargs[1].denominatore, vargs[0].numeratore / vargs[0].denominatore);
+              goto irrational;
+            }
+            break;
+          }
           case 's':
-            numeratori.push(sin(args_numeratore[0]/args_divisore[0]));
-            divisori.push(1);
-            break;
-            
-          case 'c':
-            numeratori.push(sin(args_numeratore[0]/args_divisore[0]));
-            divisori.push(1);
-            break;
-          
-          case 't':
-            numeratori.push(sin(args_numeratore[0]/args_divisore[0]));
-            divisori.push(1);
-            break;
-            
+            risultato.numeratore = sin(DEG_TO_RAD * vargs[0].numeratore / vargs[0].denominatore);
+            goto irrational;
           case 'S':
-            numeratori.push(sin(args_numeratore[0]/args_divisore[0]));
-            divisori.push(1);
-            break;
-          
+            risultato.numeratore = asin(vargs[0].numeratore / vargs[0].denominatore);
+            goto irrational;
+          case 'c':
+            risultato.numeratore = cos(DEG_TO_RAD * vargs[0].numeratore / vargs[0].denominatore);
+            goto irrational;
           case 'C':
-            numeratori.push(sin(args_numeratore[0]/args_divisore[0]));
-            divisori.push(1);
-            break;
-          
+            // Yay properties of trigonometrical functions! 22 bytes saved.
+            risultato.numeratore = HALF_PI - asin(vargs[0].numeratore / vargs[0].denominatore);
+            goto irrational;
+          case 't':
+            // Apparently, tan(x) occupies more space than sin(x)/cos(x). Wow.
+            risultato.numeratore = sin(DEG_TO_RAD * vargs[0].numeratore / vargs[0].denominatore)/cos(DEG_TO_RAD * vargs[0].numeratore / vargs[0].denominatore);
+            goto irrational;
           case 'T':
-            numeratori.push(sin(args_numeratore[0]/args_divisore[0]));
-            divisori.push(1);
-            break;
-            
-          case '^':
-            if ((args_numeratore[0]-(int)args_numeratore[0] == 0) && (args_numeratore[1]-(int)args_numeratore[1] == 0) && args_numeratore[0] > 0 && args_divisore[0] == 1 && args_divisore[1] == 1) {
-              numeratori.push(powint(args_numeratore[1], args_numeratore[0]));
-            } else {
-              numeratori.push(pow(args_numeratore[1]/args_divisore[1], args_numeratore[0]/args_divisore[0]));
-            }
-            divisori.push(1);
-            break;
-            
+            risultato.numeratore = atan(vargs[0].numeratore / vargs[0].denominatore);
+            goto irrational;
           case 'l':
-            if (args_numeratore[0] > 0) {
-              numeratori.push(log(args_numeratore[0]/args_divisore[0]));
-              divisori.push(1);
-            } else {
-              Serial.println("ln of a nonpositive number");
-            }
-            break;
-          
+            risultato.numeratore = log(vargs[0].numeratore / vargs[0].denominatore);
+            goto irrational;
           case 'L':
-            if (args_numeratore[0] > 0) {
-              numeratori.push(log10(args_numeratore[0]/args_divisore[0]));
-              divisori.push(1);
-            } else {
-              Serial.println("log of a nonpositive number");
-            }
-            break;
+            // Yay properties of logarithms! Enables us to save a few bytes of flash
+            risultato.numeratore = log(vargs[0].numeratore / vargs[0].denominatore)/log(10);
+            goto irrational;
         }
+        goto rest;
+
+irrational:
+  risultato.denominatore = 1;
+  risultato.isRational = false;
+  goto rest;
+
+sum:
+            risultato.denominatore = vargs[1].denominatore * vargs[0].denominatore;
+            risultato.isRational = vargs[0].isRational && vargs[1].isRational;
+            goto rest;
+
+rest:
+        if (risultato.denominatore < 0) {
+          risultato.denominatore = -risultato.denominatore;
+          risultato.numeratore   = -risultato.numeratore;
+        }
+        simplify(risultato);
+        stack.push(risultato);
 
         // deallocate memory for operands.
-        free(args_numeratore);
-        free(args_divisore);
+        free (vargs);
       } else {
         // the character is unknown.
-        #if DEBUG
+        #if SERIAL_DEBUG
           Serial.println("err4");
           // POSTFIX-EVALUATION: there is an unknown token in the expression.
         #endif
@@ -286,14 +256,13 @@ evaluate_postfix (String & postfix, double &numeratore, int &divisore) {
       }
     }
   }
-
   // if there is only one element in the stack.
-  if (numeratori.count() == 1) {
+  if (stack.count () == 1) {
     // return the result of the expression.
-    numeratore = numeratori.pop();
-    divisore = divisori.pop();
+    result = stack.pop();
+    return true;
   } else {
-    #if DEBUG
+    #if SERIAL_DEBUG
       Serial.println("err5");
       // POSTFIX-EVALUATION: expression has too many values.
     #endif

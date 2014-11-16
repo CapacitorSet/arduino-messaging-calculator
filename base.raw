@@ -28,6 +28,7 @@ byte colPins[KEYPAD_COLS] = {$keypadCol1, $keypadCol2, $keypadCol3, $keypadCol4}
 #include "conversion_tools.h"
 #include "ShrunkLiquidCrystal.h"
 #include "Keypad.h"
+#include "numero.h"
 #include <EEPROM.h>
 
 // Initialize the LCD object with the appropriate pins
@@ -156,7 +157,6 @@ void loop () {
 			time = millis(); // Record the time of this tap for future reference
 		}
 
-		/* Custom keypress behaviour */
 		switch (key) {
 			case '0':
 				/* Shift+0 in text mode
@@ -302,8 +302,6 @@ void loop () {
 
 					lcd.setCursor(0, 1);
 					String postfix;
-					double numeratore;
-					int divisore;
 					char value[RESULT_MAX_SIZE]; // The result, as a char*
 
 					#if DEBUG
@@ -318,19 +316,16 @@ void loop () {
 							Serial.println(postfix);
 						#endif
 
-						// try to evaluate the postfix expression
-						if (evaluate_postfix (postfix, numeratore, divisore)) {
-							// casta il numeratore a string
-							double_string (value, numeratore, RESULT_PRECISION);
+						struct Numero result;
 
-							lcd.print(value);
-							// se c'e' un divisore
-							if (divisore != 1) {
-								lcd.print('/');
-								// castalo a string prima di printarlo
-								itoa(divisore, value, 10);
-								lcd.print(value);
-							}
+						// try to evaluate the postfix expression
+						if (evaluate_postfix (postfix, result)) {
+							// casta il numeratore a string
+							//double_string (value, result, RESULT_PRECISION);
+
+							lcd.print(result.numeratore);
+							lcd.print('/');
+							lcd.print(result.denominatore);
 						} else
 						// if the postfix expression couldn't be evaluated
 						{
@@ -386,7 +381,7 @@ void loop () {
 				}
 				break;
 		}
-
+		
 		switch (key) {
 			/* KEYS */
 			// Don't delete the comment above, it is required by make.js.
