@@ -197,13 +197,13 @@ evaluate_postfix (String & postfix, struct Numero & result) {
             break;
           }
           case 's':
-            risultato.numeratore = sin(vargs[0].numeratore / vargs[0].denominatore);
+            risultato.numeratore = sin(DEG_TO_RAD * vargs[0].numeratore / vargs[0].denominatore);
             goto irrational;
           case 'S':
             risultato.numeratore = asin(vargs[0].numeratore / vargs[0].denominatore);
             goto irrational;
           case 'c':
-            risultato.numeratore = cos(vargs[0].numeratore / vargs[0].denominatore);
+            risultato.numeratore = cos(DEG_TO_RAD * vargs[0].numeratore / vargs[0].denominatore);
             goto irrational;
           case 'C':
             // Yay properties of trigonometrical functions! 22 bytes saved.
@@ -211,7 +211,7 @@ evaluate_postfix (String & postfix, struct Numero & result) {
             goto irrational;
           case 't':
             // Apparently, tan(x) occupies more space than sin(x)/cos(x). Wow.
-            risultato.numeratore = sin(vargs[0].numeratore / vargs[0].denominatore)/cos(vargs[0].numeratore / vargs[0].denominatore);
+            risultato.numeratore = sin(DEG_TO_RAD * vargs[0].numeratore / vargs[0].denominatore)/cos(DEG_TO_RAD * vargs[0].numeratore / vargs[0].denominatore);
             goto irrational;
           case 'T':
             risultato.numeratore = atan(vargs[0].numeratore / vargs[0].denominatore);
