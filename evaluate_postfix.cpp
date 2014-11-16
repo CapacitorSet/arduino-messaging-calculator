@@ -192,13 +192,44 @@ evaluate_postfix (String & postfix, struct Numero & result) {
               risultato.isRational = true;
             } else {
               risultato.numeratore = pow(vargs[1].numeratore, vargs[0].numeratore / vargs[0].denominatore) / pow(vargs[1].denominatore, vargs[0].numeratore / vargs[0].denominatore);
-              risultato.denominatore = 1;
-              risultato.isRational = false;
+              goto irrational;
             }
             break;
           }
+          case 's':
+            risultato.numeratore = sin(vargs[0].numeratore / vargs[0].denominatore);
+            goto irrational;
+          case 'S':
+            risultato.numeratore = asin(vargs[0].numeratore / vargs[0].denominatore);
+            goto irrational;
+          case 'c':
+            risultato.numeratore = cos(vargs[0].numeratore / vargs[0].denominatore);
+            goto irrational;
+          case 'C':
+            // Yay properties of trigonometrical functions! 22 bytes saved.
+            risultato.numeratore = HALF_PI - asin(vargs[0].numeratore / vargs[0].denominatore);
+            goto irrational;
+          case 't':
+            // Apparently, tan(x) occupies more space than sin(x)/cos(x). Wow.
+            risultato.numeratore = sin(vargs[0].numeratore / vargs[0].denominatore)/cos(vargs[0].numeratore / vargs[0].denominatore);
+            goto irrational;
+          case 'T':
+            risultato.numeratore = atan(vargs[0].numeratore / vargs[0].denominatore);
+            goto irrational;
+          case 'l':
+            risultato.numeratore = log(vargs[0].numeratore / vargs[0].denominatore);
+            goto irrational;
+          case 'L':
+            // Yay properties of logarithms! Enables us to save a few bytes of flash
+            risultato.numeratore = log(vargs[0].numeratore / vargs[0].denominatore)/log(10);
+            goto irrational;
         }
         goto rest;
+
+irrational:
+  risultato.denominatore = 1;
+  risultato.isRational = false;
+  goto rest;
 
 sum:
             risultato.denominatore = vargs[1].denominatore * vargs[0].denominatore;
