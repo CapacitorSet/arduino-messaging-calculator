@@ -28,6 +28,7 @@ byte colPins[KEYPAD_COLS] = {$keypadCol1, $keypadCol2, $keypadCol3, $keypadCol4}
 #include "conversion_tools.h"
 #include "ShrunkLiquidCrystal.h"
 #include "Keypad.h"
+#include "numero.h"
 #include <EEPROM.h>
 
 // Initialize the LCD object with the appropriate pins
@@ -295,8 +296,6 @@ void loop () {
 
 					lcd.setCursor(0, 1);
 					String postfix;
-					double numeratore;
-					int divisore;
 					char value[RESULT_MAX_SIZE]; // The result, as a char*
 
 					#if DEBUG
@@ -311,14 +310,16 @@ void loop () {
 							Serial.println(postfix);
 						#endif
 
-						double result;
+						struct Numero result;
 
 						// try to evaluate the postfix expression
 						if (evaluate_postfix (postfix, result)) {
 							// casta il numeratore a string
-							double_string (value, result, RESULT_PRECISION);
+							//double_string (value, result, RESULT_PRECISION);
 
-							lcd.print(value);
+							lcd.print(result.numeratore);
+							lcd.print('/');
+							lcd.print(result.denominatore);
 						} else
 						// if the postfix expression couldn't be evaluated
 						{
