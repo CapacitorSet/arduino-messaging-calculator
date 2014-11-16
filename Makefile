@@ -1,10 +1,10 @@
 all: calculator.ino
 
-calculator.ino: base.raw make.js keys.json Keys.cpptemplate
-	node make.js
+calculator.ino: keys.json key.cpptemplate tapCount.cpptemplate calculator.raw
+	./keys.py
 
-base.raw:
-make.js:
+calculator.raw: configure.py base.raw
+	./configure.py
+
 keys.json:
-Keys.cpptemplate: TapCount.cpptemplate
-TapCount.cpptemplate:
+base.raw:
