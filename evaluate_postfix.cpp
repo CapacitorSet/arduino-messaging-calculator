@@ -192,16 +192,6 @@ evaluate_postfix (String & postfix, struct Numero & result) {
               risultato.isRational = true;
             } else {
               risultato.numeratore = pow(vargs[1].numeratore, vargs[0].numeratore / vargs[0].denominatore) / pow(vargs[1].denominatore, vargs[0].numeratore / vargs[0].denominatore);
-              Serial.print("Numeratore: ");
-              Serial.print(vargs[1].numeratore);
-              Serial.print(" ^ ");
-              Serial.print(vargs[0].numeratore);
-              Serial.print(" / ");
-              Serial.print(vargs[1].denominatore);
-              Serial.print(" ^ ");
-              Serial.print(vargs[0].numeratore);
-              Serial.print(" = ");
-              Serial.println(risultato.numeratore);
               risultato.denominatore = 1;
               risultato.isRational = false;
             }
