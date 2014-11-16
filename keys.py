@@ -47,8 +47,9 @@ for key in keys:
 
 	HandleTapCount = ""
 	tapCount = 0
+	temp = tap_template
 	for item in data["textMode"]:
-		temp = tap_template.replace("$TapCount", str(tapCount))
+		temp = temp.replace("$TapCount", str(tapCount))
 		temp = temp.replace("$CurrentTap", setVars({"toBuffer": key}))
 		HandleTapCount = temp
 		tapCount += 1
