@@ -55,6 +55,13 @@ unsigned int countDigits(int number) {
   return digitNumber;
 }
 
+double powdouble(double factor, unsigned int exponent) {
+    double product = 1;
+    while (exponent--)
+       product *= factor;
+    return product;
+}
+
 long powint(int factor, unsigned int exponent) {
     long product = 1;
     while (exponent--)
@@ -133,8 +140,14 @@ evaluate_postfix (String & postfix, struct Numero & result) {
         // evaluate the operator with its operands.
         
         Serial.print(vargs[0].numeratore);
+        Serial.print('/');
+        Serial.print(vargs[0].denominatore);
+        Serial.print(' ');
         Serial.print(c);
-        Serial.println(vargs[1].numeratore);
+        Serial.print(' ');
+        Serial.print(vargs[1].numeratore);
+        Serial.print('/');
+        Serial.println(vargs[1].denominatore);
         
         struct Numero risultato;
         
@@ -163,6 +176,37 @@ evaluate_postfix (String & postfix, struct Numero & result) {
             risultato.numeratore = vargs[1].numeratore * vargs[0].denominatore;
             risultato.denominatore = vargs[1].denominatore * vargs[0].numeratore;
             break;
+          case '^': {
+            if ((vargs[0].numeratore/vargs[0].denominatore)<0) {
+              struct Numero temp;
+              temp.denominatore = vargs[1].numeratore;
+              temp.numeratore = vargs[1].denominatore;
+              temp.isRational = vargs[1].isRational;
+              vargs[1] = temp;
+              vargs[0].numeratore = abs(vargs[0].numeratore);
+              vargs[0].denominatore = abs(vargs[0].denominatore);
+            }
+            if (fmod(vargs[0].numeratore, 1.0) == 0.0 && vargs[0].denominatore == 1) {
+              risultato.numeratore = powdouble(vargs[1].numeratore, vargs[0].numeratore);
+              risultato.denominatore = powint(vargs[1].denominatore, vargs[0].numeratore);
+              risultato.isRational = true;
+            } else {
+              risultato.numeratore = pow(vargs[1].numeratore, vargs[0].numeratore / vargs[0].denominatore) / pow(vargs[1].denominatore, vargs[0].numeratore / vargs[0].denominatore);
+              Serial.print("Numeratore: ");
+              Serial.print(vargs[1].numeratore);
+              Serial.print(" ^ ");
+              Serial.print(vargs[0].numeratore);
+              Serial.print(" / ");
+              Serial.print(vargs[1].denominatore);
+              Serial.print(" ^ ");
+              Serial.print(vargs[0].numeratore);
+              Serial.print(" = ");
+              Serial.println(risultato.numeratore);
+              risultato.denominatore = 1;
+              risultato.isRational = false;
+            }
+            break;
+          }
         }
         goto rest;
 
