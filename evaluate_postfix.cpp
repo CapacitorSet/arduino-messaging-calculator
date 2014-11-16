@@ -27,7 +27,7 @@
 #include "evaluate_postfix.h"
 #include "parse_tools.h"
 
-int mcd(int a, int b) {
+unsigned int mcd(unsigned int a, unsigned int b) {
     for (;;)
     {
         if (a == 0) return b;
@@ -38,7 +38,7 @@ int mcd(int a, int b) {
 }
 
 int mcm(int a, int b) {
-    int temp = mcd(a, b);
+    unsigned int temp = mcd(abs(a), abs(b));
     return temp ? (a / temp * b) : 0;
 }
 
@@ -55,8 +55,7 @@ unsigned int countDigits(int number) {
   return digitNumber;
 }
 
-long powint(int factor, unsigned int exponent)
-{
+long powint(int factor, unsigned int exponent) {
     long product = 1;
     while (exponent--)
        product *= factor;
@@ -160,12 +159,11 @@ evaluate_postfix (String & postfix, struct Numero & result) {
         goto rest;
 
 sum:
-            risultato.denominatore = vargs[1].denominatore * vargs[1].denominatore;
+            risultato.denominatore = vargs[1].denominatore * vargs[0].denominatore;
             risultato.isRational = vargs[0].isRational && vargs[1].isRational;
             goto rest;
 
 rest:
-        Serial.println(risultato.denominatore);
         if (risultato.denominatore < 0) {
           risultato.denominatore = -risultato.denominatore;
           risultato.numeratore   = -risultato.numeratore;
@@ -185,10 +183,6 @@ rest:
       }
     }
   }
-#if SERIAL_DEBUG
-  Serial.print(stack.count());
-  Serial.println(" items in the stack.");
-#endif
   // if there is only one element in the stack.
   if (stack.count () == 1) {
     // return the result of the expression.
