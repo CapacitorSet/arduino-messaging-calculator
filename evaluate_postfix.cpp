@@ -155,6 +155,14 @@ evaluate_postfix (String & postfix, struct Numero & result) {
           case '-':
             risultato.numeratore = vargs[1].numeratore*vargs[0].denominatore - vargs[0].numeratore*vargs[1].denominatore;
             goto sum;
+          case '*':
+            risultato.numeratore = vargs[1].numeratore * vargs[0].numeratore;
+            risultato.denominatore = vargs[1].denominatore * vargs[0].denominatore;
+            break;
+          case '/':
+            risultato.numeratore = vargs[1].numeratore * vargs[0].denominatore;
+            risultato.denominatore = vargs[1].denominatore * vargs[0].numeratore;
+            break;
         }
         goto rest;
 
