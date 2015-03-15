@@ -326,8 +326,10 @@ void loop () {
 							//double_string (value, result, RESULT_PRECISION);
 
 							lcd.print(result.numeratore);
-							lcd.print('/');
-							lcd.print(result.denominatore);
+							if (result.denominatore != 1) {
+								lcd.print('/');
+								lcd.print(result.denominatore);
+							}
 						} else
 						// if the postfix expression couldn't be evaluated
 						{
