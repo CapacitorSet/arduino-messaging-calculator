@@ -185,9 +185,11 @@ void loop () {
 					printExpression = false;
 					clearScreen = false;
 					bool doesPinMatch = true;
+/*
 					for (int i = 0; i < 16; i++) {
 						doesPinMatch &= (EEPROM.read(1024-16+i) == expression[i]);
 					}
+*/
 					if (doesPinMatch) {
 						textMode = !textMode;
 						#if DEBUG
